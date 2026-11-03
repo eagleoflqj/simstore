@@ -39,7 +39,10 @@ jobs:
 
   publish:
     needs: build
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    # Temporary PR publishing for installation-command verification.
+    if: >-
+      (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')) ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'add-release-install-command')
     runs-on: ubuntu-26.04
     permissions:
       contents: write

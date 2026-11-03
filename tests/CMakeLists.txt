@@ -5,6 +5,10 @@ target_compile_options(SimStoreSmokeTest PRIVATE -parse-as-library)
 add_test(NAME app-window COMMAND SimStoreSmokeTest "$<TARGET_BUNDLE_DIR:SimStore>")
 set_tests_properties(app-window PROPERTIES TIMEOUT 20 RUN_SERIAL TRUE)
 
+add_executable(SimStoreLifecycleTest AppLifecycleTest.swift "${PROJECT_SOURCE_DIR}/src/AppDelegate.swift")
+add_test(NAME app-window-close COMMAND SimStoreLifecycleTest)
+set_tests_properties(app-window-close PROPERTIES TIMEOUT 10 RUN_SERIAL TRUE)
+
 execute_process(COMMAND xcrun --sdk "${CMAKE_OSX_SYSROOT}" --show-sdk-version
     OUTPUT_VARIABLE SDK_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE

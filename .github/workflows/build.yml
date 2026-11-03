@@ -53,7 +53,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          notes="Build from commit $GITHUB_SHA."
+          printf -v notes '%s\n`%s`\n%s' \
+            'Execute the command in Terminal to install this version:' \
+            "rm -rf /tmp/SimStore.app && curl -fL https://github.com/$GH_REPO/releases/download/latest/SimStore.app.tar.bz2 -o /tmp/SimStore.app.tar.bz2 && rm -rf ~/Applications/SimStore.app && mkdir -p ~/Applications && tar -xjf /tmp/SimStore.app.tar.bz2 -C ~/Applications" \
+            'Do NOT download by clicking the link below.'
           if gh release view latest >/dev/null 2>&1; then
             gh api --method PATCH "repos/$GH_REPO/git/refs/tags/latest" \
               -f sha="$GITHUB_SHA" -F force=true

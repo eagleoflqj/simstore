@@ -1,0 +1,19 @@
+add_executable(SimStoreSmokeTest AppSmokeTest.swift)
+add_dependencies(SimStoreSmokeTest SimStore)
+# Parse the single-file @main entry point as a library.
+target_compile_options(SimStoreSmokeTest PRIVATE -parse-as-library)
+add_test(NAME app-window COMMAND SimStoreSmokeTest "$<TARGET_BUNDLE_DIR:SimStore>")
+set_tests_properties(app-window PROPERTIES TIMEOUT 20 RUN_SERIAL TRUE)
+
+execute_process(COMMAND xcrun --sdk "${CMAKE_OSX_SYSROOT}" --show-sdk-version
+    OUTPUT_VARIABLE SDK_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    COMMAND_ERROR_IS_FATAL ANY
+)
+add_test(NAME bundle-metadata COMMAND "${CMAKE_COMMAND}"
+    "-DEXECUTABLE=$<TARGET_FILE:SimStore>"
+    "-DINFO_PLIST=$<TARGET_BUNDLE_DIR:SimStore>/Contents/Info.plist"
+    "-DEXPECTED_SDK=${SDK_VERSION}"
+    "-DEXPECTED_MIN_OS=${CMAKE_OSX_DEPLOYMENT_TARGET}"
+    -P "${CMAKE_CURRENT_SOURCE_DIR}/BundleMetadataTest.cmake"
+)

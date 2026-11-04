@@ -8,6 +8,6 @@ struct SimStoreApp: App {
     WindowGroup("SimStore") {
       ContentView()
     }
-    .defaultSize(width: 800, height: 540)
+    .defaultSize(width: 1180, height: 780)
   }
 }

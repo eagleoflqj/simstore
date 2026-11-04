@@ -9,6 +9,10 @@ add_executable(SimStoreLifecycleTest AppLifecycleTest.swift "${PROJECT_SOURCE_DI
 add_test(NAME app-window-close COMMAND SimStoreLifecycleTest)
 set_tests_properties(app-window-close PROPERTIES TIMEOUT 10 RUN_SERIAL TRUE)
 
+add_executable(SimStoreDiscoveryTest SimulatorDiscoveryTests.swift "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift")
+add_test(NAME simulator-discovery COMMAND SimStoreDiscoveryTest)
+set_tests_properties(simulator-discovery PROPERTIES TIMEOUT 15)
+
 execute_process(COMMAND xcrun --sdk "${CMAKE_OSX_SYSROOT}" --show-sdk-version
     OUTPUT_VARIABLE SDK_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE

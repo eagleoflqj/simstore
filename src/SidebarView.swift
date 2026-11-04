@@ -64,6 +64,7 @@ struct SidebarView: View {
               } icon: {
                 Image(systemName: device.name.contains("iPad") ? "ipad.landscape" : "iphone")
                   .foregroundStyle(.secondary)
+                  .frame(width: 20)
               }
             }
           }

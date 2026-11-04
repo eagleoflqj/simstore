@@ -25,6 +25,17 @@ target_compile_options(SimStoreStableSizeTest PRIVATE -parse-as-library)
 add_test(NAME stable-button-size COMMAND SimStoreStableSizeTest "$<TARGET_BUNDLE_DIR:SimStore>")
 set_tests_properties(stable-button-size PROPERTIES TIMEOUT 15 RUN_SERIAL TRUE)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_executable(SimStorePreviewScenarioTest PreviewScenarioTests.swift
+        "${PROJECT_SOURCE_DIR}/src/PreviewScenario.swift"
+        "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    )
+    target_compile_definitions(SimStorePreviewScenarioTest PRIVATE DEBUG)
+    target_compile_options(SimStorePreviewScenarioTest PRIVATE -parse-as-library)
+    add_test(NAME preview-scenarios COMMAND SimStorePreviewScenarioTest)
+    set_tests_properties(preview-scenarios PROPERTIES TIMEOUT 15)
+endif()
+
 execute_process(COMMAND xcrun --sdk "${CMAKE_OSX_SYSROOT}" --show-sdk-version
     OUTPUT_VARIABLE SDK_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE

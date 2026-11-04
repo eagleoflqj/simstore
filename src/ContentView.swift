@@ -14,7 +14,12 @@ struct ContentView: View {
 
   init(
     discover: @escaping @MainActor () async throws -> SimulatorDiscovery = {
-      try await SimulatorDiscovery.scan(installedXcodeURL: ContentView.installedXcodeURL)
+      #if DEBUG
+        if let scenario = try PreviewScenario.parse(CommandLine.arguments) {
+          return try await scenario.discover(installedXcodeURL: ContentView.installedXcodeURL)
+        }
+      #endif
+      return try await SimulatorDiscovery.scan(installedXcodeURL: ContentView.installedXcodeURL)
     }
   ) {
     self.discover = discover

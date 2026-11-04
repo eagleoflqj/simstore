@@ -10,7 +10,10 @@ add_executable(SimStore MACOSX_BUNDLE
     SimulatorStatusViews.swift
     StableSizeView.swift
     SimulatorCheckButton.swift
+    PreviewScenario.swift
 )
+
+target_compile_definitions(SimStore PRIVATE "$<$<CONFIG:Debug>:DEBUG>")
 
 include("${PROJECT_SOURCE_DIR}/cmake/Localization.cmake")
 

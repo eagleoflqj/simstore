@@ -14,7 +14,7 @@ struct SidebarView: View {
         Image(nsImage: NSApplication.shared.applicationIconImage)
           .resizable()
           .frame(width: 37, height: 37)
-        Text("SimStore")
+        Text(verbatim: "SimStore")
           .font(.system(size: 22, weight: .bold))
           .tracking(-0.7)
       }
@@ -54,7 +54,7 @@ struct SidebarView: View {
               Label {
                 VStack(alignment: .leading, spacing: 4) {
                   Text(device.name).font(.system(size: 12, weight: .medium))
-                  Text("iOS \(device.runtime) · \(device.state)")
+                  Text("iOS \(device.runtime) · \(stateLabel(device.state))")
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
                 }
@@ -75,16 +75,18 @@ struct SidebarView: View {
         VStack(alignment: .leading, spacing: 7) {
           Text(
             isChecking
-              ? "Checking for devices…"
+              ? String(localized: "Checking for devices…")
               : needsXcode
-                ? "Xcode required"
-                : discovery == nil ? "No devices to display" : "No simulators yet"
+                ? String(localized: "Xcode required")
+                : discovery == nil
+                  ? String(localized: "No devices to display")
+                  : String(localized: "No simulators yet")
           )
           .font(.system(size: 12, weight: .medium))
           Text(
             needsXcode
-              ? "Install Xcode to add iPhone and iPad simulators."
-              : "Your iPhone and iPad simulators will appear here."
+              ? String(localized: "Install Xcode to add iPhone and iPad simulators.")
+              : String(localized: "Your iPhone and iPad simulators will appear here.")
           )
           .font(.system(size: 11))
           .foregroundStyle(.secondary)
@@ -109,7 +111,17 @@ struct SidebarView: View {
     }
   }
 
-  private func sidebarPlaceholder(_ title: String, systemImage: String) -> some View {
+  private func stateLabel(_ state: String) -> String {
+    switch state {
+    case "Booted": String(localized: "Booted")
+    case "Shutdown": String(localized: "Shutdown")
+    case "Booting": String(localized: "Booting")
+    case "Shutting Down": String(localized: "Shutting Down")
+    default: state
+    }
+  }
+
+  private func sidebarPlaceholder(_ title: LocalizedStringKey, systemImage: String) -> some View {
     Label(title, systemImage: systemImage)
       .font(.system(size: 13))
       .foregroundStyle(.tertiary)

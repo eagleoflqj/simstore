@@ -36,6 +36,10 @@ jobs:
           if-no-files-found: error
       - name: Check Swift formatting
         run: xcrun swift-format lint --recursive --strict src tests
+      - name: Check localization catalog
+        run: |
+          cmake --build --preset release --target GenerateStrings
+          git diff --exit-code -- assets/Localizable.xcstrings
       - name: Test
         run: ctest --preset release --verbose
 

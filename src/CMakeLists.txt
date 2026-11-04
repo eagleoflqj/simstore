@@ -10,6 +10,8 @@ add_executable(SimStore MACOSX_BUNDLE
     SimulatorStatusViews.swift
 )
 
+include("${PROJECT_SOURCE_DIR}/cmake/Localization.cmake")
+
 find_program(RSVG_CONVERT_EXECUTABLE rsvg-convert REQUIRED)
 find_program(ICONUTIL_EXECUTABLE iconutil REQUIRED)
 set(ICONSET_DIR "${CMAKE_CURRENT_BINARY_DIR}/simstore.iconset")

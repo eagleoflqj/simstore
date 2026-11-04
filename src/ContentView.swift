@@ -79,7 +79,7 @@ struct ContentView: View {
           }
           .disabled(isChecking)
           .keyboardShortcut("r", modifiers: .command)
-          .help("Check for iOS simulators")
+          .help(Text("Check for iOS simulators"))
         }
       }
     }
@@ -145,13 +145,13 @@ struct ContentView: View {
   private func openRepository() {
     let url = AppConfiguration.buildsRepositoryURL
     if !NSWorkspace.shared.open(url) {
-      launchError = "Open \(url.absoluteString) in your web browser."
+      launchError = String(localized: "Open \(url.absoluteString) in your web browser.")
     }
   }
 
   private func openAppStore() {
     if !NSWorkspace.shared.open(URL(string: "macappstore://apps.apple.com/app/id497799835")!) {
-      launchError = "Open the App Store and search for Xcode."
+      launchError = String(localized: "Open the App Store and search for Xcode.")
     }
   }
 
@@ -169,15 +169,18 @@ struct ContentView: View {
 
   private func openApplication(_ url: URL?, name: String) {
     guard let url, FileManager.default.fileExists(atPath: url.path) else {
-      launchError =
-        "\(name) couldn’t be opened. Make sure the full Xcode application is installed and selected."
+      launchError = String(
+        localized:
+          "\(name) couldn’t be opened. Make sure the full Xcode application is installed and selected."
+      )
       return
     }
     NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration()) {
       _, error in
       if let error {
         Task { @MainActor in
-          launchError = "\(name) couldn’t be opened. \(error.localizedDescription)"
+          launchError = String(
+            localized: "\(name) couldn’t be opened. \(error.localizedDescription)")
         }
       }
     }

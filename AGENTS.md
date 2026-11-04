@@ -7,4 +7,5 @@
 - Keep generated files and build output under build/. Do not hardcode personal machine paths.
 - Write documentation in English. Keep each prose paragraph on one physical line. Keep the README focused on the project's purpose. Keep temporary progress reports and conversation history out of repository documentation.
 - Keep product UI focused on user tasks. Do not show mock catalog entries, simulated install results, or implementation details as real functionality.
+- Use SwiftUI localized literals and `String(localized:)` for user-visible strings. After changing them, run `cmake --build --preset release --target GenerateStrings`, update the English and Simplified Chinese translations in `assets/Localizable.xcstrings`, and rebuild. Keep localization files in UTF-8.
 - Run appropriate checks and an actual build when changing build logic. Verify launch and window behavior when changing app startup. Report build, launch, and functional verification separately.

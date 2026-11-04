@@ -42,6 +42,11 @@ jobs:
           git diff --exit-code -- assets/Localizable.xcstrings
       - name: Test
         run: ctest --preset release --verbose
+      - name: Test Debug previews
+        run: |
+          cmake --preset debug
+          cmake --build --preset debug --target SimStore SimStorePreviewScenarioTest
+          ctest --preset debug --verbose -R '^preview-scenarios$'
 
   publish:
     needs: build

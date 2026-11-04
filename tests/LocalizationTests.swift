@@ -5,7 +5,7 @@ struct LocalizationTests {
   static func main() {
     do {
       try verifyTranslations()
-      print("PASS: English and Simplified Chinese resources, interpolation, and plurals.")
+      print("PASS: English and Simplified Chinese resources, simulator actions, and interpolation.")
     } catch {
       FileHandle.standardError.write(
         Data("Localization test failed: \(error.localizedDescription)\n".utf8))
@@ -34,6 +34,12 @@ struct LocalizationTests {
       let labels: [(String.LocalizationValue, String, String)] = [
         ("Discover", "Discover", "发现"), ("Installed", "Installed", "已安装"),
         ("Updates", "Updates", "更新"),
+        ("Start Simulator", "Start Simulator", "启动模拟器"),
+        ("Starting…", "Starting…", "正在启动…"),
+        ("Booted", "Booted", "已启动"),
+        ("Shutdown", "Shutdown", "已关机"),
+        ("Booting", "Booting", "正在启动"),
+        ("Shutting Down", "Shutting Down", "正在关机"),
       ]
       for (key, source, translated) in labels {
         try expect(
@@ -52,6 +58,11 @@ struct LocalizationTests {
       try expect(
         String(localized: "\(tool) couldn’t be opened. \(detail)", bundle: bundle, locale: locale),
         english ? "Device Hub couldn’t be opened. \(detail)" : "无法打开 Device Hub。\(detail)")
+      let deviceName = "iPhone 测试"
+      try expect(
+        String(
+          localized: "Couldn’t start \(deviceName).\n\(detail)", bundle: bundle, locale: locale),
+        english ? "Couldn’t start \(deviceName).\n\(detail)" : "无法启动 \(deviceName)。\n\(detail)")
       try expect(
         String(
           localized:
@@ -61,16 +72,9 @@ struct LocalizationTests {
           ? "Create an iPhone or iPad simulator in Device Hub.\nThen come back to find your next favorite app."
           : "在 Device Hub 中创建 iPhone 或 iPad 模拟器。\n然后回来发现你喜爱的应用。")
 
-      for count in [0, 1, 2, 40] {
-        let expected =
-          english
-          ? "Found \(count) available iOS \(count == 1 ? "simulator" : "simulators")."
-          : "找到 \(count) 台可用的 iOS 模拟器。"
-        try expect(
-          String(
-            localized: "Found \(count) available iOS simulators.", bundle: bundle, locale: locale),
-          expected)
-      }
+      let runtime = "27.0"
+      try expect(
+        String(localized: "iOS \(runtime)", bundle: bundle, locale: locale), "iOS 27.0")
     }
   }
 

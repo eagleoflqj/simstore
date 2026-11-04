@@ -11,6 +11,10 @@ struct SimulatorDevice: Identifiable, Equatable, Sendable {
   let name: String
   let runtime: String
   let state: String
+
+  var canStart: Bool { state == "Shutdown" || state == "Booting" }
+
+  var isTransitioning: Bool { state == "Booting" || state == "Shutting Down" }
 }
 
 struct SimulatorDiscovery: Sendable {

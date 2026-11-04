@@ -45,13 +45,8 @@ struct NoSimulatorsView: View {
       .padding(.top, 12)
 
       HStack(spacing: 10) {
-        Button(
-          "Open \(deviceManagerName ?? "Xcode")",
-          systemImage: deviceManagerName == nil ? "hammer" : "iphone.and.arrow.forward"
-        ) {
-          openDeviceManager()
-        }
-        .buttonStyle(.borderedProminent)
+        DeviceManagerButton(name: deviceManagerName, action: openDeviceManager)
+          .buttonStyle(.borderedProminent)
         SimulatorCheckButton(isChecking: isChecking, action: checkAgain)
           .buttonStyle(.bordered)
       }

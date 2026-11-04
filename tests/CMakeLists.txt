@@ -13,6 +13,22 @@ add_executable(SimStoreDiscoveryTest SimulatorDiscoveryTests.swift "${PROJECT_SO
 add_test(NAME simulator-discovery COMMAND SimStoreDiscoveryTest)
 set_tests_properties(simulator-discovery PROPERTIES TIMEOUT 15)
 
+add_executable(SimStoreControlTest SimulatorControlTests.swift
+    "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorControl.swift"
+)
+target_compile_options(SimStoreControlTest PRIVATE -parse-as-library)
+add_test(NAME simulator-control COMMAND SimStoreControlTest)
+set_tests_properties(simulator-control PROPERTIES TIMEOUT 15)
+
+add_executable(SimStoreStoreTest SimulatorStoreTests.swift
+    "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorStore.swift"
+)
+target_compile_options(SimStoreStoreTest PRIVATE -parse-as-library)
+add_test(NAME simulator-store COMMAND SimStoreStoreTest)
+set_tests_properties(simulator-store PROPERTIES TIMEOUT 15)
+
 add_executable(SimStoreLocalizationTest LocalizationTests.swift)
 add_dependencies(SimStoreLocalizationTest SimStore)
 target_compile_options(SimStoreLocalizationTest PRIVATE -parse-as-library)

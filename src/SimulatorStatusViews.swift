@@ -13,26 +13,6 @@ struct SimulatorLoadingView: View {
 }
 
 @MainActor
-struct SimulatorsReadyView: View {
-  let count: Int
-
-  var body: some View {
-    VStack(spacing: 14) {
-      Image(systemName: "iphone.and.arrow.forward")
-        .font(.system(size: 48, weight: .light))
-        .foregroundStyle(Color.accentColor)
-      Text("Your simulators are ready")
-        .font(.system(size: 24, weight: .semibold))
-      Text(
-        "Found \(count) available iOS simulators."
-      )
-      .font(.system(size: 13))
-      .foregroundStyle(.secondary)
-    }
-  }
-}
-
-@MainActor
 struct SimulatorDiscoveryErrorView: View {
   let error: Error
   let isChecking: Bool

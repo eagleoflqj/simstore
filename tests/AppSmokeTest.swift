@@ -1,11 +1,12 @@
+import AppKit
 import CoreGraphics
-import Foundation
 
 @main
 struct AppSmokeTest {
-  static func main() {
+  @MainActor
+  static func main() async {
     do {
-      try verifyWindow()
+      try await verifyWindow()
     } catch {
       FileHandle.standardError.write(
         Data("App smoke test failed: \(error.localizedDescription)\n".utf8))
@@ -13,36 +14,30 @@ struct AppSmokeTest {
     }
   }
 
-  static func verifyWindow() throws {
+  @MainActor
+  static func verifyWindow() async throws {
     guard CommandLine.arguments.count == 2 else {
       throw failure("Expected the App Bundle path.")
     }
     let bundleURL = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
-    guard let executable = Bundle(url: bundleURL)?.executableURL else {
-      throw failure("The App Bundle has no executable.")
-    }
-    let process = Process()
-    process.executableURL = executable
-    try process.run()
-    defer {
-      if process.isRunning {
-        process.terminate()
-      }
-      process.waitUntilExit()
-    }
+    let configuration = NSWorkspace.OpenConfiguration()
+    configuration.createsNewApplicationInstance = true
+    let application = try await NSWorkspace.shared.openApplication(
+      at: bundleURL, configuration: configuration)
+    defer { application.terminate() }
 
     let deadline = Date().addingTimeInterval(10)
     var foundWindow = false
     while Date() < deadline {
-      guard process.isRunning else {
+      guard !application.isTerminated else {
         throw failure(
-          "The app exited before its window appeared (status \(process.terminationStatus)).")
+          "The app exited before its window appeared.")
       }
       let windows =
         CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
         as? [[String: Any]] ?? []
       foundWindow = windows.contains { window in
-        guard (window[kCGWindowOwnerPID as String] as? Int32) == process.processIdentifier,
+        guard (window[kCGWindowOwnerPID as String] as? Int32) == application.processIdentifier,
           (window[kCGWindowLayer as String] as? Int) == 0,
           let bounds = window[kCGWindowBounds as String] as? [String: Any],
           let width = bounds["Width"] as? Double,
@@ -55,18 +50,18 @@ struct AppSmokeTest {
       if foundWindow {
         break
       }
-      Thread.sleep(forTimeInterval: 0.1)
+      try await Task.sleep(for: .milliseconds(100))
     }
     guard foundWindow else {
       throw failure(
         "No visible app window appeared. Run this test from a logged-in macOS GUI session.")
     }
-    Thread.sleep(forTimeInterval: 2)
-    guard process.isRunning else {
+    try await Task.sleep(for: .seconds(2))
+    guard !application.isTerminated else {
       throw failure("The app exited after showing its window.")
     }
     print(
-      "PASS: SimStore launched with a visible window and remained alive (PID \(process.processIdentifier))."
+      "PASS: SimStore launched with a visible window and remained alive (PID \(application.processIdentifier))."
     )
   }
 

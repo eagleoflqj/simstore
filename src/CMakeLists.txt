@@ -1,7 +1,13 @@
 add_executable(SimStore MACOSX_BUNDLE
     AppDelegate.swift
+    AppConfiguration.swift
     SimStoreApp.swift
+    SimulatorDiscovery.swift
     ContentView.swift
+    SidebarView.swift
+    NoSimulatorsView.swift
+    MissingXcodeView.swift
+    SimulatorStatusViews.swift
 )
 
 find_program(RSVG_CONVERT_EXECUTABLE rsvg-convert REQUIRED)

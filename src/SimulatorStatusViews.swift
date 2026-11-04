@@ -55,13 +55,7 @@ struct SimulatorDiscoveryErrorView: View {
       .frame(maxWidth: 390)
       HStack(spacing: 10) {
         Button("Open Xcode", systemImage: "hammer") { openXcode() }
-        Button(
-          isChecking ? String(localized: "Checking…") : String(localized: "Try Again"),
-          systemImage: "arrow.clockwise"
-        ) {
-          checkAgain()
-        }
-        .disabled(isChecking)
+        SimulatorCheckButton(isChecking: isChecking, isRetry: true, action: checkAgain)
       }
       .controlSize(.large)
       DisclosureGroup("Details") {

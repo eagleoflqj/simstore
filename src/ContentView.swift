@@ -8,11 +8,13 @@ struct ContentView: View {
   @State private var isChecking = false
   @State private var launchError: String?
 
+  private static var installedXcodeURL: URL? {
+    NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.dt.Xcode")
+  }
+
   init(
     discover: @escaping @MainActor () async throws -> SimulatorDiscovery = {
-      try await SimulatorDiscovery.scan(
-        installedXcodeURL: NSWorkspace.shared.urlForApplication(
-          withBundleIdentifier: "com.apple.dt.Xcode"))
+      try await SimulatorDiscovery.scan(installedXcodeURL: ContentView.installedXcodeURL)
     }
   ) {
     self.discover = discover
@@ -162,10 +164,7 @@ struct ContentView: View {
   }
 
   private func openXcode() {
-    openApplication(
-      discovery?.xcodeURL
-        ?? NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.dt.Xcode"),
-      name: "Xcode")
+    openApplication(discovery?.xcodeURL ?? Self.installedXcodeURL, name: "Xcode")
   }
 
   private func openApplication(_ url: URL?, name: String) {

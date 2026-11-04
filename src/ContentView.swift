@@ -141,8 +141,9 @@ struct ContentView: View {
   }
 
   private func openRepository() {
-    if !NSWorkspace.shared.open(URL(string: "https://github.com/iSimStore/simstore-builds")!) {
-      launchError = "Open https://github.com/iSimStore/simstore-builds in your web browser."
+    let url = AppConfiguration.buildsRepositoryURL
+    if !NSWorkspace.shared.open(url) {
+      launchError = "Open \(url.absoluteString) in your web browser."
     }
   }
 

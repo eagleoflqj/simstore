@@ -52,7 +52,10 @@ struct NoSimulatorsView: View {
           openDeviceManager()
         }
         .buttonStyle(.borderedProminent)
-        Button(isChecking ? "Checking…" : "Check Again", systemImage: "arrow.clockwise") {
+        Button(
+          isChecking ? String(localized: "Checking…") : String(localized: "Check Again"),
+          systemImage: "arrow.clockwise"
+        ) {
           checkAgain()
         }
         .buttonStyle(.bordered)

@@ -3,7 +3,7 @@ import Foundation
 enum SimulatorDiscoveryError: LocalizedError, Equatable {
   case xcodeNotInstalled
 
-  var errorDescription: String? { "Xcode is not installed." }
+  var errorDescription: String? { String(localized: "Xcode is not installed.") }
 }
 
 struct SimulatorDevice: Identifiable, Equatable, Sendable {
@@ -53,7 +53,8 @@ struct SimulatorDiscovery: Sendable {
         throw NSError(
           domain: "SimulatorDiscovery", code: 1,
           userInfo: [
-            NSLocalizedDescriptionKey: "Xcode did not provide a valid developer directory."
+            NSLocalizedDescriptionKey: String(
+              localized: "Xcode did not provide a valid developer directory.")
           ])
       }
       let developerDirectory = URL(fileURLWithPath: directory)
@@ -118,7 +119,10 @@ struct SimulatorDiscovery: Sendable {
         domain: "SimulatorDiscovery", code: Int(process.terminationStatus),
         userInfo: [
           NSLocalizedDescriptionKey: diagnostic.isEmpty
-            ? "\(process.executableURL!.lastPathComponent) exited with status \(process.terminationStatus)."
+            ? String(
+              localized:
+                "\(process.executableURL!.lastPathComponent) exited with status \(process.terminationStatus)."
+            )
             : diagnostic
         ])
     }

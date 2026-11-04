@@ -13,6 +13,12 @@ add_executable(SimStoreDiscoveryTest SimulatorDiscoveryTests.swift "${PROJECT_SO
 add_test(NAME simulator-discovery COMMAND SimStoreDiscoveryTest)
 set_tests_properties(simulator-discovery PROPERTIES TIMEOUT 15)
 
+add_executable(SimStoreLocalizationTest LocalizationTests.swift)
+add_dependencies(SimStoreLocalizationTest SimStore)
+target_compile_options(SimStoreLocalizationTest PRIVATE -parse-as-library)
+add_test(NAME localization COMMAND SimStoreLocalizationTest "$<TARGET_BUNDLE_DIR:SimStore>")
+set_tests_properties(localization PROPERTIES TIMEOUT 10)
+
 execute_process(COMMAND xcrun --sdk "${CMAKE_OSX_SYSROOT}" --show-sdk-version
     OUTPUT_VARIABLE SDK_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE

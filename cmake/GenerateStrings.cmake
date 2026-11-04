@@ -1,0 +1,15 @@
+set(AVAILABLE_STRINGSDATA_FILES)
+foreach(STRINGSDATA_FILE IN LISTS STRINGSDATA_FILES)
+    if(EXISTS "${STRINGSDATA_FILE}")
+        list(APPEND AVAILABLE_STRINGSDATA_FILES "${STRINGSDATA_FILE}")
+    endif()
+endforeach()
+if(NOT AVAILABLE_STRINGSDATA_FILES)
+    message(FATAL_ERROR "No Swift localization metadata was generated.")
+endif()
+
+execute_process(
+    COMMAND "${XCSTRINGSTOOL_EXECUTABLE}" sync "${LOCALIZATION_CATALOG}"
+        --stringsdata ${AVAILABLE_STRINGSDATA_FILES}
+    COMMAND_ERROR_IS_FATAL ANY
+)

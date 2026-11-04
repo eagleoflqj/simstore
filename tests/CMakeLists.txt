@@ -19,6 +19,12 @@ target_compile_options(SimStoreLocalizationTest PRIVATE -parse-as-library)
 add_test(NAME localization COMMAND SimStoreLocalizationTest "$<TARGET_BUNDLE_DIR:SimStore>")
 set_tests_properties(localization PROPERTIES TIMEOUT 10)
 
+add_executable(SimStoreStableSizeTest StableSizeViewTests.swift "${PROJECT_SOURCE_DIR}/src/StableSizeView.swift")
+add_dependencies(SimStoreStableSizeTest SimStore)
+target_compile_options(SimStoreStableSizeTest PRIVATE -parse-as-library)
+add_test(NAME stable-button-size COMMAND SimStoreStableSizeTest "$<TARGET_BUNDLE_DIR:SimStore>")
+set_tests_properties(stable-button-size PROPERTIES TIMEOUT 15 RUN_SERIAL TRUE)
+
 execute_process(COMMAND xcrun --sdk "${CMAKE_OSX_SYSROOT}" --show-sdk-version
     OUTPUT_VARIABLE SDK_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE

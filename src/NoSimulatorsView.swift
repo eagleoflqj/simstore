@@ -52,14 +52,8 @@ struct NoSimulatorsView: View {
           openDeviceManager()
         }
         .buttonStyle(.borderedProminent)
-        Button(
-          isChecking ? String(localized: "Checking…") : String(localized: "Check Again"),
-          systemImage: "arrow.clockwise"
-        ) {
-          checkAgain()
-        }
-        .buttonStyle(.bordered)
-        .disabled(isChecking)
+        SimulatorCheckButton(isChecking: isChecking, action: checkAgain)
+          .buttonStyle(.bordered)
       }
       .controlSize(.large)
       .padding(.top, 25)

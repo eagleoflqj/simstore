@@ -8,6 +8,8 @@ add_executable(SimStore MACOSX_BUNDLE
     NoSimulatorsView.swift
     MissingXcodeView.swift
     SimulatorStatusViews.swift
+    StableSizeView.swift
+    SimulatorCheckButton.swift
 )
 
 include("${PROJECT_SOURCE_DIR}/cmake/Localization.cmake")

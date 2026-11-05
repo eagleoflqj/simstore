@@ -1,6 +1,8 @@
 import Foundation
 
 enum AppConfiguration {
+  static let applicationIdentifier =
+    Bundle.main.bundleIdentifier ?? ProcessInfo.processInfo.processName
   static let buildsRepositoryURL = URL(string: "https://github.com/iSimStore/simstore-builds")!
 
   static var catalogURL: URL {

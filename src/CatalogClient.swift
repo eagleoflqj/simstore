@@ -10,7 +10,8 @@ struct CatalogClient: Sendable {
 
   static let live = CatalogClient(
     url: AppConfiguration.catalogURL,
-    cacheURL: URL.cachesDirectory.appending(path: "io.simstore.SimStore/index.json")
+    cacheURL: URL.cachesDirectory.appending(component: AppConfiguration.applicationIdentifier)
+      .appending(component: "index.json")
   )
 
   init(
@@ -50,7 +51,7 @@ struct CatalogClient: Sendable {
           at: cacheURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         try data.write(to: cacheURL, options: .atomic)
       } catch {
-        Logger(subsystem: "io.simstore.SimStore", category: "Catalog")
+        Logger(subsystem: AppConfiguration.applicationIdentifier, category: "Catalog")
           .error("Could not save catalog cache: \(error.localizedDescription, privacy: .public)")
       }
     }.value

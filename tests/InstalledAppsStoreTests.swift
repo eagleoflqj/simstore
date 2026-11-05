@@ -10,6 +10,7 @@ struct InstalledAppsStoreTests {
       try await staleErrors()
       try await cancellationAndCoalescing()
       try await refreshedDeviceState()
+      try await recordingInstallationDuringRefresh()
       print(
         "PASS: per-device installed apps, filtering, stale responses, errors, and cancellation.")
     } catch {
@@ -167,6 +168,32 @@ struct InstalledAppsStoreTests {
 
   static func device(_ id: String, state: String = "Booted") -> SimulatorDevice {
     SimulatorDevice(id: id, name: "iPhone 17 Pro", runtime: "27.0", state: state)
+  }
+
+  static func recordingInstallationDuringRefresh() async throws {
+    let probe = InventoryProbe()
+    let store = InstalledAppsStore(load: { try await probe.load($0) })
+    let first = Task { await store.refresh(for: device("A")) }
+    try await eventually { await probe.calls.count == 1 }
+    store.recordInstallation(bundleID: "org.example.WrongDevice", deviceID: "B")
+    store.recordInstallation(bundleID: "org.example.New", deviceID: "A")
+    try require(
+      store.bundleIDs == nil,
+      "An installation must not turn an unknown inventory into a complete snapshot.")
+    await probe.finish(0, with: .success([]))
+    await first.value
+    try require(
+      store.bundleIDs == ["org.example.New"],
+      "Merge successful installs into an older in-flight inventory response.")
+    try require(
+      store.isInstalled(bundleID: "org.example.NEW", deviceID: "A") == true,
+      "Match installed bundle IDs without case sensitivity.")
+    let next = Task { await store.refresh(for: device("A")) }
+    try await eventually { await probe.calls.count == 2 }
+    await probe.finish(1, with: .success([]))
+    await next.value
+    try require(
+      store.bundleIDs == [], "A later authoritative refresh must reflect external uninstalls.")
   }
 
   static func catalog() -> AppCatalog {

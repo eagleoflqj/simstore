@@ -241,6 +241,38 @@
         }
       }
     },
+    "Cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "Canceling…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canceling…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在取消…"
+          }
+        }
+      }
+    },
     "Catalog Unavailable": {
       "localizations": {
         "en": {
@@ -577,6 +609,22 @@
         }
       }
     },
+    "Downloading…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloading…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在下载…"
+          }
+        }
+      }
+    },
     "Every app in the catalog is already installed on this simulator.": {
       "localizations": {
         "en": {
@@ -589,6 +637,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "目录中的所有应用均已安装在此模拟器中。"
+          }
+        }
+      }
+    },
+    "Install": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装"
           }
         }
       }
@@ -621,6 +685,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "已安装"
+          }
+        }
+      }
+    },
+    "Installing…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installing…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在安装…"
           }
         }
       }
@@ -801,6 +881,22 @@
         }
       }
     },
+    "Open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开"
+          }
+        }
+      }
+    },
     "Open %@": {
       "localizations": {
         "en": {
@@ -893,6 +989,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "你喜爱的开源应用，专为模拟器构建。"
+          }
+        }
+      }
+    },
+    "Opening…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opening…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在打开…"
+          }
+        }
+      }
+    },
+    "Preparing App…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing App…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在准备应用…"
           }
         }
       }
@@ -1313,6 +1441,22 @@
         }
       }
     },
+    "The app must contain only arm64 iOS Simulator binaries.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The app must contain only arm64 iOS Simulator binaries."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用必须仅包含 arm64 iOS 模拟器二进制文件。"
+          }
+        }
+      }
+    },
     "The app repository returned HTTP %lld.": {
       "localizations": {
         "en": {
@@ -1341,6 +1485,118 @@
           "stringUnit": {
             "state": "translated",
             "value": "应用仓库返回了无效响应。"
+          }
+        }
+      }
+    },
+    "The download must contain exactly one app bundle with safe file paths.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The download must contain exactly one app bundle with safe file paths."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载包必须仅包含一个应用包，且文件路径不能越界。"
+          }
+        }
+      }
+    },
+    "The download server returned HTTP %lld.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The download server returned HTTP %lld."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载服务器返回了 HTTP %lld。"
+          }
+        }
+      }
+    },
+    "The download server returned an invalid response.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The download server returned an invalid response."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载服务器返回了无效响应。"
+          }
+        }
+      }
+    },
+    "The downloaded app bundle is invalid.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The downloaded app bundle is invalid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载的应用包无效。"
+          }
+        }
+      }
+    },
+    "The downloaded app does not match the selected app and version.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The downloaded app does not match the selected app and version."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载的应用与所选应用或版本不符。"
+          }
+        }
+      }
+    },
+    "The downloaded file failed its SHA-256 check. Try downloading it again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The downloaded file failed its SHA-256 check. Try downloading it again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载的文件未通过 SHA-256 校验，请重新下载。"
+          }
+        }
+      }
+    },
+    "The downloaded file has the wrong size. Try downloading it again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The downloaded file has the wrong size. Try downloading it again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载的文件大小不符，请重新下载。"
           }
         }
       }
@@ -1453,6 +1709,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "工具"
+          }
+        }
+      }
+    },
+    "Verifying…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifying…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在校验…"
           }
         }
       }

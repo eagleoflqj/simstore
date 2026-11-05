@@ -15,6 +15,8 @@ final class InstalledAppsStore {
   private var selectedDevice: SimulatorDevice?
   @ObservationIgnored
   private var request: Request?
+  @ObservationIgnored
+  private var installedDuringRefresh: Set<String> = []
 
   init(
     load: @escaping @Sendable (SimulatorDevice) async throws -> Set<String> = {
@@ -30,6 +32,17 @@ final class InstalledAppsStore {
     return catalog.apps.filter { !installed.contains($0.bundleID.lowercased()) }
   }
 
+  func recordInstallation(bundleID: String, deviceID: String) {
+    guard self.deviceID == deviceID else { return }
+    installedDuringRefresh.insert(bundleID)
+    bundleIDs?.insert(bundleID)
+  }
+
+  func isInstalled(bundleID: String, deviceID: String) -> Bool? {
+    guard self.deviceID == deviceID, let bundleIDs else { return nil }
+    return bundleIDs.contains { $0.caseInsensitiveCompare(bundleID) == .orderedSame }
+  }
+
   func refresh(for device: SimulatorDevice) async {
     guard !Task.isCancelled else { return }
     if let pending = request, pending.device == device {
@@ -43,6 +56,7 @@ final class InstalledAppsStore {
     request = pending
     selectedDevice = device
     deviceID = device.id
+    installedDuringRefresh = []
     bundleIDs = nil
     error = nil
     isLoading = true
@@ -56,7 +70,7 @@ final class InstalledAppsStore {
     do {
       let installed = try await load(device)
       try Task.checkCancellation()
-      if request === pending { bundleIDs = installed }
+      if request === pending { bundleIDs = installed.union(installedDuringRefresh) }
     } catch is CancellationError {
     } catch {
       if request === pending && !Task.isCancelled {

@@ -143,7 +143,7 @@ extension CatalogVersion: Decodable {
   }
 }
 
-private struct CatalogVersionNumber: Comparable {
+struct CatalogVersionNumber: Comparable {
   let components: [Int]
 
   init?(_ text: String) {

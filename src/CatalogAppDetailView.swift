@@ -3,15 +3,24 @@ import SwiftUI
 @MainActor
 struct CatalogAppDetailView: View {
   let app: CatalogApp
-  let runtime: String
+  let device: SimulatorDevice
+  let installedApps: InstalledAppsStore
+  let installations: AppInstallationStore
   @State private var versionID: String
   @Environment(\.dismiss) private var dismiss
 
-  init(app: CatalogApp, runtime: String) {
+  init(
+    app: CatalogApp, device: SimulatorDevice,
+    installedApps: InstalledAppsStore, installations: AppInstallationStore
+  ) {
     self.app = app
-    self.runtime = runtime
-    _versionID = State(initialValue: app.recommendedVersion(for: runtime).version)
+    self.device = device
+    self.installedApps = installedApps
+    self.installations = installations
+    _versionID = State(initialValue: app.recommendedVersion(for: device.runtime).version)
   }
+
+  private var runtime: String { device.runtime }
 
   private var version: CatalogVersion {
     app.versions.first(where: { $0.version == versionID }) ?? app.recommendedVersion(for: runtime)
@@ -33,6 +42,10 @@ struct CatalogAppDetailView: View {
 
           Grid(alignment: .leading, horizontalSpacing: 24, verticalSpacing: 16) {
             GridRow {
+              Text("Simulator").foregroundStyle(.secondary)
+              Text(verbatim: "\(device.name) · \(device.runtimeLabel)")
+            }
+            GridRow {
               Text("Version").foregroundStyle(.secondary)
               Picker(selection: $versionID) {
                 ForEach(app.versions) { build in
@@ -43,6 +56,7 @@ struct CatalogAppDetailView: View {
               }
               .labelsHidden()
               .accessibilityIdentifier("catalog-version")
+              .disabled(installations.phase(appID: app.id, deviceID: device.id) != nil)
               .frame(maxWidth: 240)
             }
             GridRow {
@@ -86,6 +100,9 @@ struct CatalogAppDetailView: View {
             .fixedSize(horizontal: false, vertical: true)
           }
 
+          AppInstallStatusView(
+            appID: app.id, deviceID: device.id, version: version, store: installations)
+
           HStack(spacing: 20) {
             Link(destination: app.repository) {
               Label("Source Repository", systemImage: "curlybraces")
@@ -124,8 +141,16 @@ struct CatalogAppDetailView: View {
       }
       Divider()
       HStack {
+        Button("Done") { dismiss() }.keyboardShortcut(.cancelAction)
         Spacer()
-        Button("Done") { dismiss() }.keyboardShortcut(.defaultAction)
+        AppInstallButton(
+          app: app, version: version, device: device, store: installations,
+          isInstalled: installedApps.isInstalled(bundleID: app.bundleID, deviceID: device.id),
+          allowsIncompatible: true
+        )
+        .buttonStyle(.borderedProminent)
+        .keyboardShortcut(.defaultAction)
+        .accessibilityIdentifier("detail-install")
       }
       .padding(20)
     }

@@ -4,6 +4,7 @@ import SwiftUI
 struct CatalogBrowserView: View {
   let store: CatalogStore
   let installedApps: InstalledAppsStore
+  let installations: AppInstallationStore
   let device: SimulatorDevice
   let isStarting: Bool
   let deviceManagerName: String?
@@ -85,7 +86,8 @@ struct CatalogBrowserView: View {
       if !category.isEmpty && !values.contains(category) { category = "" }
     }
     .sheet(item: $selectedApp) { app in
-      CatalogAppDetailView(app: app, runtime: device.runtime)
+      CatalogAppDetailView(
+        app: app, device: device, installedApps: installedApps, installations: installations)
     }
     .popover(isPresented: $showsSimulator) {
       SimulatorDetailView(
@@ -195,25 +197,13 @@ struct CatalogBrowserView: View {
                   let index = row * columns + column
                   if index < visibleApps.count {
                     let app = visibleApps[index]
-                    Button {
-                      selectedApp = app
-                    } label: {
-                      CatalogAppCard(app: app, runtime: device.runtime)
-                        .frame(width: cardWidth)
-                    }
-                    .buttonStyle(.plain)
-                    .focused($focusedAppID, equals: app.id)
-                    .id(app.id)
-                    .accessibilityLabel(Text(verbatim: app.name))
-                    .accessibilityValue(
-                      Text(
-                        verbatim:
-                          "\(app.displayDescription) · \(app.recommendedVersion(for: device.runtime).version) · \(app.recommendedVersion(for: device.runtime).minimumOSLabel)"
-                      )
+                    CatalogAppCard(
+                      app: app, device: device, installedApps: installedApps,
+                      installations: installations, focusedAppID: $focusedAppID,
+                      showDetails: { selectedApp = app }
                     )
-                    .accessibilityHint(Text("View app details and versions"))
-                    .accessibilityIdentifier("catalog-app-\(app.id)")
-                    .help(Text(verbatim: app.displayDescription))
+                    .frame(width: cardWidth)
+                    .id(app.id)
                   } else {
                     Color.clear.frame(width: cardWidth)
                       .gridCellUnsizedAxes(.vertical)
@@ -239,51 +229,5 @@ struct CatalogBrowserView: View {
   private func refresh() {
     Task { await store.refresh() }
     refreshInstalledApps()
-  }
-}
-
-private struct CatalogAppCard: View {
-  let app: CatalogApp
-  let runtime: String
-
-  var body: some View {
-    let version = app.recommendedVersion(for: runtime)
-    VStack(alignment: .leading, spacing: 14) {
-      HStack(spacing: 12) {
-        CatalogIcon(app: app)
-        VStack(alignment: .leading, spacing: 4) {
-          Text(verbatim: app.name)
-            .font(.system(size: 15, weight: .semibold))
-            .lineLimit(2, reservesSpace: true)
-          Text(verbatim: app.categoryTitle)
-            .font(.system(size: 10)).foregroundStyle(.secondary)
-            .lineLimit(1)
-        }
-        Spacer(minLength: 0)
-      }
-      Text(verbatim: app.displayDescription)
-        .font(.system(size: 12)).foregroundStyle(.secondary)
-        .lineLimit(2, reservesSpace: true)
-        .frame(maxWidth: .infinity, alignment: .leading)
-      HStack {
-        Text(verbatim: version.version).monospacedDigit()
-        Spacer(minLength: 4)
-        if !version.isCompatible(with: runtime) {
-          Label("iOS \(version.minSimulatorOS)+", systemImage: "exclamationmark.triangle")
-            .foregroundStyle(.orange)
-        } else {
-          Text(verbatim: ByteCountFormatter.string(fromByteCount: version.size, countStyle: .file))
-            .foregroundStyle(.secondary)
-        }
-      }
-      .font(.system(size: 11))
-    }
-    .padding(18)
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 14))
-    .overlay {
-      RoundedRectangle(cornerRadius: 14).strokeBorder(Color.primary.opacity(0.07))
-    }
-    .contentShape(RoundedRectangle(cornerRadius: 14))
   }
 }

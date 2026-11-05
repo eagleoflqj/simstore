@@ -1,0 +1,86 @@
+import Foundation
+
+@main
+struct CommandTests {
+  static func main() {
+    do {
+      try argumentBytes()
+      try processFailures()
+      try wrapperArguments()
+      try wrapperFailures()
+      print("PASS: command output, literal arguments, exit diagnostics, and tool wrappers.")
+    } catch {
+      FileHandle.standardError.write(
+        Data("Command test failed: \(error.localizedDescription)\n".utf8))
+      exit(EXIT_FAILURE)
+    }
+  }
+
+  static func argumentBytes() throws {
+    let value = "A simulator 名称\n'quoted' ; $(echo unexpected) $HOME \\"
+    let output = try Command.run("/usr/bin/printf", arguments: ["%s", value])
+    try require(
+      output == Data(value.utf8), "Arguments must reach the process without shell expansion.")
+  }
+
+  static func processFailures() throws {
+    for (script, status, diagnostic) in [
+      ("printf 'simulator tools unavailable' >&2; exit 9", 9, "simulator tools unavailable"),
+      ("exit 7", 7, ""),
+    ] {
+      let error: NSError
+      do {
+        _ = try Command.run("/bin/sh", arguments: ["-c", script])
+        throw failure("A nonzero exit must fail instead of returning output.")
+      } catch let caught { error = caught as NSError }
+      try require(error.domain == "Command" && error.code == status, "Preserve the exit status.")
+      if diagnostic.isEmpty {
+        try require(
+          error.localizedDescription.contains("sh")
+            && error.localizedDescription.contains(String(status)),
+          "An empty diagnostic must identify the executable and exit status.")
+      } else {
+        try require(error.localizedDescription == diagnostic, "Preserve the command's stderr.")
+      }
+    }
+  }
+
+  static func wrapperArguments() throws {
+    let output = Data("tool output".utf8)
+    let arguments = ["--set", "/tmp/Devices with spaces", "list", "devices", "--json"]
+    let xcrunOutput = try Command.xcrun(arguments) { executable, actual in
+      try require(executable == "/usr/bin/xcrun", "Use the system Xcode tool resolver.")
+      try require(actual == arguments, "Forward xcrun arguments without changing their boundaries.")
+      return output
+    }
+    let simctlOutput = try Command.simctl(arguments) { executable, actual in
+      try require(executable == "/usr/bin/xcrun", "Resolve simctl through xcrun.")
+      try require(actual == ["simctl"] + arguments, "Prefix the simulator tool exactly once.")
+      return output
+    }
+    try require(xcrunOutput == output && simctlOutput == output, "Return the original tool output.")
+  }
+
+  static func wrapperFailures() throws {
+    let expected = failure("Selected toolchain is unavailable.")
+    let runner: Command.Runner = { _, _ in throw expected }
+    let wrappers: [([String], Command.Runner) throws -> Data] = [Command.xcrun, Command.simctl]
+    for wrapper in wrappers {
+      do {
+        _ = try wrapper(["list"], runner)
+      } catch {
+        try require((error as NSError) == expected, "Forward the original tool error unchanged.")
+        continue
+      }
+      throw failure("A failed tool command must throw.")
+    }
+  }
+
+  static func require(_ condition: Bool, _ message: String) throws {
+    if !condition { throw failure(message) }
+  }
+
+  static func failure(_ message: String) -> NSError {
+    NSError(domain: "CommandTests", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
+  }
+}

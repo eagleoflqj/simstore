@@ -41,7 +41,7 @@ struct SimulatorDiscovery: Sendable {
 
   static func scan(
     installedXcodeURL: URL?,
-    command: @escaping @Sendable (String, [String]) throws -> Data = commandOutput
+    command: @escaping Command.Runner = Command.run
   ) async throws -> SimulatorDiscovery {
     try await Task.detached(priority: .userInitiated) {
       let directoryData: Data
@@ -66,8 +66,8 @@ struct SimulatorDiscovery: Sendable {
       guard isXcodeApplication(selectedXcode) || isXcodeApplication(installedXcodeURL) else {
         throw SimulatorDiscoveryError.xcodeNotInstalled
       }
-      let deviceData = try command(
-        "/usr/bin/xcrun", ["simctl", "list", "devices", "available", "--json"])
+      let deviceData = try Command.simctl(
+        ["list", "devices", "available", "--json"], using: command)
       return SimulatorDiscovery(
         developerDirectory: developerDirectory, devices: try decodeDevices(deviceData))
     }.value
@@ -104,32 +104,5 @@ struct SimulatorDiscovery: Sendable {
       if $0.name == $1.name { return $0.id < $1.id }
       return $0.name.localizedStandardCompare($1.name) == .orderedAscending
     }
-  }
-
-  static func commandOutput(_ executable: String, arguments: [String]) throws -> Data {
-    let process = Process()
-    let pipe = Pipe()
-    process.executableURL = URL(fileURLWithPath: executable)
-    process.arguments = arguments
-    process.standardOutput = pipe
-    process.standardError = pipe
-    try process.run()
-    let data = pipe.fileHandleForReading.readDataToEndOfFile()
-    process.waitUntilExit()
-    guard process.terminationReason == .exit, process.terminationStatus == 0 else {
-      let diagnostic = String(decoding: data, as: UTF8.self).trimmingCharacters(
-        in: .whitespacesAndNewlines)
-      throw NSError(
-        domain: "SimulatorDiscovery", code: Int(process.terminationStatus),
-        userInfo: [
-          NSLocalizedDescriptionKey: diagnostic.isEmpty
-            ? String(
-              localized:
-                "\(process.executableURL!.lastPathComponent) exited with status \(process.terminationStatus)."
-            )
-            : diagnostic
-        ])
-    }
-    return data
   }
 }

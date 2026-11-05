@@ -7,7 +7,6 @@ struct SimulatorDiscoveryTests {
       try emptyInventory()
       try availableIOSDevices()
       try malformedInventory()
-      try commandFailure()
       try deviceManagerLocations()
       try await xcodeInstallationStates()
       print(
@@ -68,19 +67,6 @@ struct SimulatorDiscoveryTests {
       }
       throw failure("An invalid response must fail instead of being interpreted as no simulators.")
     }
-  }
-
-  static func commandFailure() throws {
-    do {
-      _ = try SimulatorDiscovery.commandOutput(
-        "/bin/sh", arguments: ["-c", "printf 'simulator tools unavailable' >&2; exit 9"])
-    } catch {
-      try require(
-        error.localizedDescription.contains("simulator tools unavailable"),
-        "A failed command should preserve its diagnostic.")
-      return
-    }
-    throw failure("A nonzero command exit must fail instead of returning an empty inventory.")
   }
 
   static func deviceManagerLocations() throws {

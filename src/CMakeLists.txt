@@ -1,6 +1,7 @@
 add_executable(SimStore MACOSX_BUNDLE
     AppDelegate.swift
     AppConfiguration.swift
+    Command.swift
     SimStoreApp.swift
     SimulatorDiscovery.swift
     SimulatorControl.swift

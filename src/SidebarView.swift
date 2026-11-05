@@ -6,6 +6,9 @@ struct SidebarView: View {
   let discovery: SimulatorDiscovery?
   let isChecking: Bool
   let needsXcode: Bool
+  let selectedDeviceID: String?
+  let startingDeviceIDs: Set<String>
+  let selectDevice: (String) -> Void
   let openRepository: () -> Void
 
   var body: some View {
@@ -38,7 +41,8 @@ struct SidebarView: View {
       .padding(.horizontal, 12)
       .fixedSize(horizontal: false, vertical: true)
 
-      Text("SIMULATORS")
+      simulatorListTitle
+        .textCase(.uppercase)
         .font(.system(size: 10, weight: .semibold))
         .tracking(1)
         .foregroundStyle(.secondary)
@@ -48,29 +52,38 @@ struct SidebarView: View {
         .fixedSize(horizontal: false, vertical: true)
 
       if let discovery, !discovery.devices.isEmpty {
-        ScrollView {
-          LazyVStack(alignment: .leading, spacing: 16) {
-            ForEach(discovery.devices) { device in
-              Label {
-                VStack(alignment: .leading, spacing: 4) {
-                  Text(device.name).font(.system(size: 12, weight: .medium))
-                  Text("iOS \(device.runtime) · \(stateLabel(device.state))")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-                }
-                .lineLimit(1)
-                .truncationMode(.tail)
-                .frame(maxWidth: .infinity, alignment: .leading)
-              } icon: {
-                Image(systemName: device.name.contains("iPad") ? "ipad.landscape" : "iphone")
-                  .foregroundStyle(.secondary)
-                  .frame(width: 20)
+        List(
+          selection: Binding(
+            get: { selectedDeviceID },
+            set: { if let id = $0 { selectDevice(id) } })
+        ) {
+          ForEach(discovery.devices) { device in
+            Label {
+              VStack(alignment: .leading, spacing: 4) {
+                Text(device.name).font(.system(size: 12, weight: .medium))
+                Text(
+                  "\(device.runtimeLabel) · \(device.stateLabel(isStarting: startingDeviceIDs.contains(device.id)))"
+                )
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
               }
+              .lineLimit(1)
+              .truncationMode(.tail)
+              .frame(maxWidth: .infinity, alignment: .leading)
+            } icon: {
+              Image(systemName: device.symbolName)
+                .foregroundStyle(.secondary)
+                .frame(width: 20)
             }
+            .tag(device.id)
+            .listRowInsets(EdgeInsets(top: 10, leading: 12, bottom: 10, trailing: 12))
+            .accessibilityElement(children: .combine)
+            .help(Text(verbatim: device.id))
           }
-          .padding(.horizontal, 24)
-          .padding(.vertical, 4)
         }
+        .listStyle(.sidebar)
+        .scrollContentBackground(.hidden)
+        .accessibilityLabel(simulatorListTitle)
         .frame(minHeight: 0)
       } else {
         VStack(alignment: .leading, spacing: 7) {
@@ -112,15 +125,7 @@ struct SidebarView: View {
     }
   }
 
-  private func stateLabel(_ state: String) -> String {
-    switch state {
-    case "Booted": String(localized: "Booted")
-    case "Shutdown": String(localized: "Shutdown")
-    case "Booting": String(localized: "Booting")
-    case "Shutting Down": String(localized: "Shutting Down")
-    default: state
-    }
-  }
+  private var simulatorListTitle: Text { Text("Simulators") }
 
   private func sidebarPlaceholder(_ title: LocalizedStringKey, systemImage: String) -> some View {
     Label(title, systemImage: systemImage)

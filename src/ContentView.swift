@@ -3,9 +3,7 @@ import SwiftUI
 
 @MainActor
 struct ContentView: View {
-  private let discover: @MainActor () async throws -> SimulatorDiscovery
-  @State private var result: Result<SimulatorDiscovery, Error>?
-  @State private var isChecking = false
+  @State private var simulators: SimulatorStore
   @State private var launchError: String?
 
   private static var installedXcodeURL: URL? {
@@ -20,19 +18,21 @@ struct ContentView: View {
         }
       #endif
       return try await SimulatorDiscovery.scan(installedXcodeURL: ContentView.installedXcodeURL)
+    },
+    boot: @escaping @Sendable (String) async throws -> Void = {
+      try await SimulatorControl.boot($0)
     }
   ) {
-    self.discover = discover
+    _simulators = State(initialValue: SimulatorStore(discover: discover, boot: boot))
   }
 
   private var needsXcode: Bool {
-    guard case .failure(let error) = result else { return false }
+    guard case .failure(let error) = simulators.result else { return false }
     return (error as? SimulatorDiscoveryError) == .xcodeNotInstalled
   }
 
   private var discovery: SimulatorDiscovery? {
-    guard case .success(let value) = result else { return nil }
-    return value
+    simulators.discovery
   }
 
   private var deviceManager: (name: String, url: URL)? {
@@ -43,7 +43,9 @@ struct ContentView: View {
     NavigationSplitView {
       GeometryReader { geometry in
         SidebarView(
-          discovery: discovery, isChecking: isChecking, needsXcode: needsXcode,
+          discovery: discovery, isChecking: simulators.isChecking, needsXcode: needsXcode,
+          selectedDeviceID: simulators.selectedDeviceID,
+          startingDeviceIDs: simulators.startingDeviceIDs, selectDevice: simulators.selectDevice,
           openRepository: openRepository
         )
         .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
@@ -70,19 +72,18 @@ struct ContentView: View {
       }
       .toolbar {
         ToolbarItem(placement: .navigation) {
-          Label("No simulator selected", systemImage: "iphone")
-            .labelStyle(.titleAndIcon)
-            .font(.system(size: 12))
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
-            .padding(.horizontal, 8)
-            .fixedSize()
+          SimulatorPicker(
+            devices: discovery?.devices ?? [], selectedDevice: simulators.selectedDevice,
+            selectDevice: simulators.selectDevice
+          )
+          .labelStyle(.titleAndIcon)
+          .font(.system(size: 12))
         }
         ToolbarItem(placement: .primaryAction) {
           Button(action: checkAgain) {
             Label("Check for Simulators", systemImage: "arrow.clockwise")
           }
-          .disabled(isChecking)
+          .disabled(simulators.isChecking)
           .keyboardShortcut("r", modifiers: .command)
           .help(Text("Check for iOS simulators"))
         }
@@ -90,7 +91,16 @@ struct ContentView: View {
     }
     .navigationSplitViewStyle(.balanced)
     .frame(minWidth: 900, minHeight: 600)
-    .task { await refresh() }
+    .task { await simulators.refresh() }
+    .task(id: shouldMonitorState) {
+      while shouldMonitorState && !Task.isCancelled {
+        do {
+          try await Task.sleep(for: .seconds(2))
+          try Task.checkCancellation()
+          await simulators.refresh()
+        } catch { return }
+      }
+    }
     .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification))
     { _ in
       checkAgain()
@@ -106,45 +116,63 @@ struct ContentView: View {
     } message: {
       Text(launchError ?? "")
     }
+    .alert(
+      "Couldn’t Start Simulator",
+      isPresented: Binding(
+        get: { simulators.startError != nil },
+        set: { if !$0 { simulators.startError = nil } }
+      )
+    ) {
+      Button("OK", role: .cancel) { simulators.startError = nil }
+    } message: {
+      Text(simulators.startError ?? "")
+    }
   }
 
   @ViewBuilder
   private var discoveryContent: some View {
-    switch result {
+    switch simulators.result {
     case .none:
       SimulatorLoadingView()
     case .some(.success(let snapshot)) where snapshot.devices.isEmpty:
       NoSimulatorsView(
-        deviceManagerName: deviceManager?.name, isChecking: isChecking,
+        deviceManagerName: deviceManager?.name, isChecking: simulators.isChecking,
         openDeviceManager: openDeviceManager, openXcode: openXcode, checkAgain: checkAgain)
-    case .some(.success(let snapshot)):
-      SimulatorsReadyView(count: snapshot.devices.count)
+    case .some(.success):
+      if let device = simulators.selectedDevice {
+        SimulatorDetailView(
+          device: device, isStarting: simulators.isStartingSelectedDevice,
+          deviceManagerName: deviceManager?.name,
+          start: startSimulator,
+          openDeviceManager: openDeviceManager)
+      }
     case .some(.failure) where needsXcode:
       MissingXcodeView(
-        isChecking: isChecking, openAppStore: openAppStore, checkAgain: checkAgain)
+        isChecking: simulators.isChecking, openAppStore: openAppStore, checkAgain: checkAgain)
     case .some(.failure(let error)):
       SimulatorDiscoveryErrorView(
-        error: error, isChecking: isChecking, openXcode: openXcode, checkAgain: checkAgain)
+        error: error, isChecking: simulators.isChecking, openXcode: openXcode,
+        checkAgain: checkAgain)
     }
   }
 
   private func checkAgain() {
-    Task { await refresh() }
+    Task { await simulators.refresh() }
   }
 
-  private func refresh() async {
-    guard !isChecking else { return }
-    isChecking = true
-    defer { isChecking = false }
-    do {
-      let snapshot = try await discover()
-      try Task.checkCancellation()
-      result = .success(snapshot)
-    } catch is CancellationError {
-      return
-    } catch {
-      result = .failure(error)
+  private func startSimulator() {
+    let id = simulators.selectedDeviceID
+    Task {
+      let started = await simulators.startSelectedDevice()
+      if started, let device = simulators.selectedDevice, device.id == id {
+        openDeviceManager()
+      }
     }
+  }
+
+  private var shouldMonitorState: Bool {
+    !simulators.startingDeviceIDs.isEmpty
+      || discovery?.devices.contains(where: \.isTransitioning) == true
   }
 
   private func openRepository() {

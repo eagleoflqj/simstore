@@ -21,8 +21,7 @@
 
     func discover(
       installedXcodeURL: URL?,
-      command: @escaping @Sendable (String, [String]) throws -> Data = SimulatorDiscovery
-        .commandOutput
+      command: @escaping Command.Runner = Command.run
     ) async throws -> SimulatorDiscovery {
       switch self {
       case .noXcode:
@@ -30,7 +29,9 @@
       case .noSimulators:
         return try await SimulatorDiscovery.scan(installedXcodeURL: installedXcodeURL) {
           executable, arguments in
-          if executable == "/usr/bin/xcrun", arguments.starts(with: ["simctl", "list", "devices"]) {
+          if executable == Command.xcrunExecutable,
+            arguments.starts(with: [Command.simctlTool, "list", "devices"])
+          {
             return Data(#"{"devices": {}}"#.utf8)
           }
           return try command(executable, arguments)

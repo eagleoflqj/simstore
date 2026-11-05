@@ -9,9 +9,34 @@ add_executable(SimStoreLifecycleTest AppLifecycleTest.swift "${PROJECT_SOURCE_DI
 add_test(NAME app-window-close COMMAND SimStoreLifecycleTest)
 set_tests_properties(app-window-close PROPERTIES TIMEOUT 10 RUN_SERIAL TRUE)
 
-add_executable(SimStoreDiscoveryTest SimulatorDiscoveryTests.swift "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift")
+add_executable(SimStoreCommandTest CommandTests.swift "${PROJECT_SOURCE_DIR}/src/Command.swift")
+target_compile_options(SimStoreCommandTest PRIVATE -parse-as-library)
+add_test(NAME command COMMAND SimStoreCommandTest)
+set_tests_properties(command PROPERTIES TIMEOUT 10)
+
+add_executable(SimStoreDiscoveryTest SimulatorDiscoveryTests.swift
+    "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/Command.swift"
+)
 add_test(NAME simulator-discovery COMMAND SimStoreDiscoveryTest)
 set_tests_properties(simulator-discovery PROPERTIES TIMEOUT 15)
+
+add_executable(SimStoreControlTest SimulatorControlTests.swift
+    "${PROJECT_SOURCE_DIR}/src/Command.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorControl.swift"
+)
+target_compile_options(SimStoreControlTest PRIVATE -parse-as-library)
+add_test(NAME simulator-control COMMAND SimStoreControlTest)
+set_tests_properties(simulator-control PROPERTIES TIMEOUT 15)
+
+add_executable(SimStoreStoreTest SimulatorStoreTests.swift
+    "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorStore.swift"
+    "${PROJECT_SOURCE_DIR}/src/Command.swift"
+)
+target_compile_options(SimStoreStoreTest PRIVATE -parse-as-library)
+add_test(NAME simulator-store COMMAND SimStoreStoreTest)
+set_tests_properties(simulator-store PROPERTIES TIMEOUT 15)
 
 add_executable(SimStoreLocalizationTest LocalizationTests.swift)
 add_dependencies(SimStoreLocalizationTest SimStore)
@@ -29,6 +54,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_executable(SimStorePreviewScenarioTest PreviewScenarioTests.swift
         "${PROJECT_SOURCE_DIR}/src/PreviewScenario.swift"
         "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+        "${PROJECT_SOURCE_DIR}/src/Command.swift"
     )
     target_compile_definitions(SimStorePreviewScenarioTest PRIVATE DEBUG)
     target_compile_options(SimStorePreviewScenarioTest PRIVATE -parse-as-library)

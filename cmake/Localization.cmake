@@ -25,7 +25,6 @@ endforeach()
 
 set(LOCALIZATION_RESOURCES
     "${LOCALIZATION_OUTPUT_DIR}/en.lproj/Localizable.strings"
-    "${LOCALIZATION_OUTPUT_DIR}/en.lproj/Localizable.stringsdict"
     "${LOCALIZATION_OUTPUT_DIR}/zh-Hans.lproj/Localizable.strings"
 )
 add_custom_command(OUTPUT ${LOCALIZATION_RESOURCES}

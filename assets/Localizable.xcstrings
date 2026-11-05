@@ -49,6 +49,22 @@
         }
       }
     },
+    "%@ · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        }
+      }
+    },
     "A simulator is where it starts.": {
       "localizations": {
         "en": {
@@ -209,6 +225,22 @@
         }
       }
     },
+    "Couldn’t Start Simulator": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t Start Simulator"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法启动模拟器"
+          }
+        }
+      }
+    },
     "Couldn’t check for simulators": {
       "localizations": {
         "en": {
@@ -221,6 +253,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法检查模拟器"
+          }
+        }
+      }
+    },
+    "Couldn’t start %@.\n%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t start %1$@.\n%2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法启动 %1$@。\n%2$@"
           }
         }
       }
@@ -285,34 +333,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "发现"
-          }
-        }
-      }
-    },
-    "Found %lld available iOS simulators.": {
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Found %lld available iOS simulator."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Found %lld available iOS simulators."
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "找到 %lld 台可用的 iOS 模拟器。"
           }
         }
       }
@@ -541,18 +561,18 @@
         }
       }
     },
-    "SIMULATORS": {
+    "Runtime": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "SIMULATORS"
+            "value": "Runtime"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模拟器"
+            "value": "运行时"
           }
         }
       }
@@ -589,6 +609,54 @@
         }
       }
     },
+    "Simulator": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simulator"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模拟器"
+          }
+        }
+      }
+    },
+    "Simulators": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simulators"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模拟器"
+          }
+        }
+      }
+    },
+    "Start Simulator": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Simulator"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启动模拟器"
+          }
+        }
+      }
+    },
     "Start with Xcode.": {
       "localizations": {
         "en": {
@@ -601,6 +669,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "从 Xcode 开始。"
+          }
+        }
+      }
+    },
+    "Starting…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在启动…"
           }
         }
       }
@@ -717,34 +801,18 @@
         }
       }
     },
-    "Your simulators are ready": {
+    "iOS %@": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your simulators are ready"
+            "value": "iOS %@"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模拟器已就绪"
-          }
-        }
-      }
-    },
-    "iOS %@ · %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iOS %@ · %@"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iOS %@ · %@"
+            "value": "iOS %@"
           }
         }
       }

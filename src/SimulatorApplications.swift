@@ -1,6 +1,28 @@
 import Foundation
 
 enum SimulatorApplications {
+  static func install(
+    _ bundle: URL, on device: SimulatorDevice,
+    command: @escaping Command.Runner = Command.run
+  ) async throws {
+    guard device.state == "Booted" else { throw SimulatorApplicationsError.notRunning }
+    try Task.checkCancellation()
+    try await Task.detached(priority: .userInitiated) {
+      _ = try Command.simctl(["install", device.id, bundle.path], using: command)
+    }.value
+  }
+
+  static func launch(
+    _ bundleID: String, on device: SimulatorDevice,
+    command: @escaping Command.Runner = Command.run
+  ) async throws {
+    guard device.state == "Booted" else { throw SimulatorApplicationsError.notRunning }
+    try Task.checkCancellation()
+    try await Task.detached(priority: .userInitiated) {
+      _ = try Command.simctl(["launch", device.id, bundleID], using: command)
+    }.value
+  }
+
   static func installedBundleIDs(
     on device: SimulatorDevice,
     command: @escaping Command.Runner = Command.run

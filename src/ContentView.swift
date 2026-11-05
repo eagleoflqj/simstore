@@ -6,6 +6,7 @@ struct ContentView: View {
   @State private var simulators: SimulatorStore
   @State private var catalog: CatalogStore
   @State private var installedApps: InstalledAppsStore
+  @State private var installations: AppInstallationStore
   @State private var launchError: String?
 
   private static var installedXcodeURL: URL? {
@@ -25,13 +26,21 @@ struct ContentView: View {
       try await SimulatorControl.boot($0)
     },
     catalogClient: CatalogClient = .live,
+    installer: AppInstaller = AppInstaller(),
     loadInstalledApps: @escaping @Sendable (SimulatorDevice) async throws -> Set<String> = {
       try await SimulatorApplications.installedBundleIDs(on: $0)
     }
   ) {
     _simulators = State(initialValue: SimulatorStore(discover: discover, boot: boot))
     _catalog = State(initialValue: CatalogStore(client: catalogClient))
-    _installedApps = State(initialValue: InstalledAppsStore(load: loadInstalledApps))
+    let installedApps = InstalledAppsStore(load: loadInstalledApps)
+    _installedApps = State(initialValue: installedApps)
+    _installations = State(
+      initialValue: AppInstallationStore(
+        installer: installer,
+        didInstall: { bundleID, deviceID in
+          installedApps.recordInstallation(bundleID: bundleID, deviceID: deviceID)
+        }))
   }
 
   private var needsXcode: Bool {
@@ -144,7 +153,8 @@ struct ContentView: View {
     case .some(.success):
       if let device = simulators.selectedDevice {
         CatalogBrowserView(
-          store: catalog, installedApps: installedApps, device: device,
+          store: catalog, installedApps: installedApps, installations: installations,
+          device: device,
           isStarting: simulators.isStartingSelectedDevice,
           deviceManagerName: deviceManager?.name,
           startSimulator: startSimulator,

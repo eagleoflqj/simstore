@@ -25,3 +25,9 @@ Disk cleanup runs on the first disk access and after a successful write. Modific
 Downloads use a dedicated ephemeral `URLSession` with its HTTP cache disabled and a 30-second request timeout. At most four downloads run concurrently. Requests for the same key share one task; canceling one view does not cancel that shared task. Canceled callers discard its result, while the completed download remains available to other views and future cache lookups.
 
 Corrupt disk images are removed and fetched again. Failed requests and invalid response bodies are not persisted or retained as successful entries. There is no automatic retry loop; a later view request can retry. While no image is available, the existing placeholder remains visible. Refreshing the catalog does not clear icon caches; only a changed key, eviction, or missing/corrupt data requires another download.
+
+## Installation downloads
+
+App archives are streamed to a separate, randomly named directory under `URL.temporaryDirectory` for each installation. The download session has its HTTP cache disabled, a 60-second inactivity timeout, and a one-hour resource timeout. Archives are not retained or shared as a persistent download cache; retrying an installation starts a new download.
+
+The archive's size and SHA-256 must match the selected catalog version before extraction. The temporary archive and extracted app are removed when the operation succeeds, fails, or finishes canceling. Cancellation during preparation waits for any running archive command to finish before cleanup; once `simctl install` starts, it is allowed to finish. A process exit can leave temporary files for the operating system to reclaim.

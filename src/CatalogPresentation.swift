@@ -34,7 +34,7 @@ extension CatalogVersion {
 
 struct CatalogIcon: View {
   let app: CatalogApp
-  private let size: CGFloat = 52
+  var size: CGFloat = 52
 
   var body: some View {
     AsyncImage(

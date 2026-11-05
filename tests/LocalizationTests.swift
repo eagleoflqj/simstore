@@ -46,6 +46,7 @@ struct LocalizationTests {
         ("Cloud", "Cloud", "云服务"),
         ("Security", "Security", "安全"),
         ("Catalog Unavailable", "Catalog Unavailable", "无法获取应用目录"),
+        ("License", "License", "许可证"),
         ("Showing Saved Catalog", "Showing Saved Catalog", "正在显示已缓存的目录"),
       ]
       for (key, source, translated) in labels {
@@ -82,6 +83,16 @@ struct LocalizationTests {
       let runtime = "27.0"
       try expect(
         String(localized: "iOS \(runtime)", bundle: bundle, locale: locale), "iOS 27.0")
+      let minimum = "27.0"
+      let olderRuntime = "18.0"
+      try expect(
+        String(
+          localized:
+            "This build requires iOS \(minimum) or later. It may not work on iOS \(olderRuntime).",
+          bundle: bundle, locale: locale),
+        english
+          ? "This build requires iOS 27.0 or later. It may not work on iOS 18.0."
+          : "此构建需要 iOS 27.0 或更高版本，在 iOS 18.0 上可能无法正常运行。")
       let status = 503
       try expect(
         String(

@@ -23,7 +23,7 @@ struct AppCatalogTests {
       "Version ordering must compare numeric components.")
     let build = entry.latestVersion
     try require(
-      build.version == "1.10.0" && build.size == 1000 && build.time == 1_793_544_257,
+      build.id == "1.10.0" && build.size == 1000 && build.time == 1_793_544_257,
       "Preserve build identity, archive size, and Unix timestamp.")
     try require(try decode(apps: []).apps.isEmpty, "A valid empty catalog is allowed.")
   }

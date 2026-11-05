@@ -129,18 +129,18 @@
         }
       }
     },
-    "Apps": {
+    "Available Versions": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apps"
+            "value": "Available Versions"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "应用"
+            "value": "可用版本"
           }
         }
       }
@@ -189,6 +189,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "浏览器"
+          }
+        }
+      }
+    },
+    "Build Details": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build Details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "构建详情"
+          }
+        }
+      }
+    },
+    "Build Release": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build Release"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "构建发布页"
+          }
+        }
+      }
+    },
+    "Bundle ID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bundle ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "包标识符"
           }
         }
       }
@@ -497,6 +545,38 @@
         }
       }
     },
+    "Done": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成"
+          }
+        }
+      }
+    },
+    "Download Size": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download Size"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载大小"
+          }
+        }
+      }
+    },
     "Every app in the catalog is already installed on this simulator.": {
       "localizations": {
         "en": {
@@ -541,6 +621,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "已安装"
+          }
+        }
+      }
+    },
+    "License": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "License"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "许可证"
+          }
+        }
+      }
+    },
+    "License refers to the upstream project’s main license. Some components or resources may use other licenses.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "License refers to the upstream project’s main license. Some components or resources may use other licenses."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "许可证指上游项目的主要许可证。部分组件或资源可能使用其他许可证。"
           }
         }
       }
@@ -801,6 +913,22 @@
         }
       }
     },
+    "Published": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布时间"
+          }
+        }
+      }
+    },
     "Published apps will appear here.": {
       "localizations": {
         "en": {
@@ -813,6 +941,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "已发布的应用将显示在这里。"
+          }
+        }
+      }
+    },
+    "Recipe Revision": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recipe Revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "构建脚本提交"
           }
         }
       }
@@ -849,6 +993,22 @@
         }
       }
     },
+    "Requires": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requires"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统要求"
+          }
+        }
+      }
+    },
     "Runtime": {
       "localizations": {
         "en": {
@@ -861,6 +1021,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "运行时"
+          }
+        }
+      }
+    },
+    "SHA-256": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SHA-256"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SHA-256"
           }
         }
       }
@@ -1025,6 +1201,38 @@
         }
       }
     },
+    "Source Repository": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source Repository"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "源代码仓库"
+          }
+        }
+      }
+    },
+    "Source Revision": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source Revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "源代码提交"
+          }
+        }
+      }
+    },
     "Start Simulator": {
       "localizations": {
         "en": {
@@ -1153,6 +1361,22 @@
         }
       }
     },
+    "This build requires iOS %@ or later. It may not work on iOS %@.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This build requires iOS %@ or later. It may not work on iOS %@."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此构建需要 iOS %@ 或更高版本，在 iOS %@ 上可能无法正常运行。"
+          }
+        }
+      }
+    },
     "Try Again": {
       "localizations": {
         "en": {
@@ -1229,6 +1453,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "工具"
+          }
+        }
+      }
+    },
+    "Version": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本"
+          }
+        }
+      }
+    },
+    "View app details and versions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View app details and versions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看应用详情和版本"
           }
         }
       }

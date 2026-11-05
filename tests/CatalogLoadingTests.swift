@@ -23,10 +23,25 @@ struct CatalogLoadingTests {
   }
 
   static func releaseURLs() throws {
+    let revision = String(repeating: "a", count: 40)
+    try require(
+      AppConfiguration.commitURL(
+        repository: URL(string: "https://github.com/example/upstream")!, revision: revision
+      ).absoluteString == "https://github.com/example/upstream/commit/\(revision)",
+      "Source commits belong to the upstream repository.")
+    try require(
+      AppConfiguration.commitURL(
+        repository: AppConfiguration.buildsRepositoryURL, revision: revision
+      ).absoluteString == "https://github.com/iSimStore/simstore-builds/commit/\(revision)",
+      "Recipe commits belong to the builds repository.")
     try require(
       AppConfiguration.catalogURL.absoluteString
         == "https://github.com/iSimStore/simstore-builds/releases/download/latest/index.json",
       "Load the aggregated index from the latest release.")
+    try require(
+      AppConfiguration.releaseURL(appID: "localsend", version: "1.17.0").absoluteString
+        == "https://github.com/iSimStore/simstore-builds/releases/tag/localsend%2F1.17.0",
+      "Encode app ID and version as a single release-tag path component.")
     try require(
       AppConfiguration.assetURL(appID: "localsend", version: "1.17.0", filename: "icon.png")
         .absoluteString

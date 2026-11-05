@@ -27,19 +27,32 @@ struct ContentView: View {
     },
     catalogClient: CatalogClient = .live,
     installer: AppInstaller = AppInstaller(),
+    showDevice: (@MainActor (SimulatorDevice) async throws -> Void)? = nil,
     loadInstalledApps: @escaping @Sendable (SimulatorDevice) async throws -> Set<String> = {
       try await SimulatorApplications.installedBundleIDs(on: $0)
     }
   ) {
-    _simulators = State(initialValue: SimulatorStore(discover: discover, boot: boot))
+    let simulators = SimulatorStore(discover: discover, boot: boot)
+    _simulators = State(initialValue: simulators)
     _catalog = State(initialValue: CatalogStore(client: catalogClient))
     let installedApps = InstalledAppsStore(load: loadInstalledApps)
     _installedApps = State(initialValue: installedApps)
     _installations = State(
       initialValue: AppInstallationStore(
         installer: installer,
+        showDevice: { device in
+          if let showDevice {
+            try await showDevice(device)
+          } else {
+            try await SimulatorPresenter.show(
+              deviceID: device.id, manager: simulators.discovery?.deviceManager)
+          }
+        },
         didInstall: { bundleID, deviceID in
           installedApps.recordInstallation(bundleID: bundleID, deviceID: deviceID)
+        },
+        didOpen: { bundleID, deviceID in
+          installedApps.removeRecentInstallation(bundleID: bundleID, deviceID: deviceID)
         }))
   }
 

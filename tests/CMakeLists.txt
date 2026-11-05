@@ -65,6 +65,7 @@ set_tests_properties(simulator-discovery PROPERTIES TIMEOUT 15)
 add_executable(SimStoreControlTest SimulatorControlTests.swift
     "${PROJECT_SOURCE_DIR}/src/Command.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorControl.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorPresenter.swift"
 )
 target_compile_options(SimStoreControlTest PRIVATE -parse-as-library)
 add_test(NAME simulator-control COMMAND SimStoreControlTest)

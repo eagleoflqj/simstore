@@ -11,17 +11,24 @@ final class AppInstallationStore {
 
   private var phases: [Key: AppInstallationPhase] = [:]
   private var errors: [Key: String] = [:]
+  private(set) var openedApp: Key?
   @ObservationIgnored private let installer: AppInstaller
   @ObservationIgnored private let didInstall: @MainActor (String, String) -> Void
+  @ObservationIgnored private let showDevice: @MainActor (SimulatorDevice) async throws -> Void
+  @ObservationIgnored private let didOpen: @MainActor (String, String) -> Void
   @ObservationIgnored private var jobs: [Key: Task<Void, Never>] = [:]
   @ObservationIgnored private var requests: [Key: UUID] = [:]
 
   init(
     installer: AppInstaller = AppInstaller(),
-    didInstall: @escaping @MainActor (String, String) -> Void = { _, _ in }
+    showDevice: @escaping @MainActor (SimulatorDevice) async throws -> Void,
+    didInstall: @escaping @MainActor (String, String) -> Void = { _, _ in },
+    didOpen: @escaping @MainActor (String, String) -> Void = { _, _ in }
   ) {
     self.installer = installer
     self.didInstall = didInstall
+    self.showDevice = showDevice
+    self.didOpen = didOpen
   }
 
   func phase(appID: String, deviceID: String) -> AppInstallationPhase? {
@@ -70,12 +77,16 @@ final class AppInstallationStore {
   func open(app: CatalogApp, on device: SimulatorDevice) {
     let key = Key(appID: app.id, deviceID: device.id)
     guard jobs[key] == nil else { return }
+    openedApp = nil
     errors[key] = nil
     phases[key] = .opening
     jobs[key] = Task {
       defer { finish(key) }
       do {
         try await installer.open(app: app, on: device)
+        try await showDevice(device)
+        didOpen(app.bundleID, device.id)
+        openedApp = key
       } catch {
         errors[key] = error.localizedDescription
       }

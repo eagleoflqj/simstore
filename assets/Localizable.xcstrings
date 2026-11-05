@@ -1601,6 +1601,22 @@
         }
       }
     },
+    "The simulator application could not be found. Check your Xcode installation.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The simulator application could not be found. Check your Xcode installation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到模拟器程序，请检查 Xcode 安装。"
+          }
+        }
+      }
+    },
     "The simulator returned an invalid app list.": {
       "localizations": {
         "en": {

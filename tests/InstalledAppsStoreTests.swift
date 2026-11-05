@@ -11,6 +11,7 @@ struct InstalledAppsStoreTests {
       try await cancellationAndCoalescing()
       try await refreshedDeviceState()
       try await recordingInstallationDuringRefresh()
+      try await retainInstalledAppsForCurrentVisit()
       print(
         "PASS: per-device installed apps, filtering, stale responses, errors, and cancellation.")
     } catch {
@@ -25,7 +26,7 @@ struct InstalledAppsStoreTests {
     let store = InstalledAppsStore(load: { try await probe.load($0) })
     let selected = device("A")
     let catalog = catalog()
-    try require(store.uninstalledApps(in: catalog, for: "A") == nil, "Unknown is not uninstalled.")
+    try require(store.discoverableApps(in: catalog, for: "A") == nil, "Unknown is not uninstalled.")
     let initial = Task { await store.refresh(for: selected) }
     try await eventually { await probe.calls.count == 1 }
     try require(
@@ -34,10 +35,10 @@ struct InstalledAppsStoreTests {
     await probe.finish(0, with: .success(["io.example.Installed", "io.example.UNKNOWN"]))
     await initial.value
     try require(
-      store.uninstalledApps(in: catalog, for: "A")?.map(\.id) == ["available"],
+      store.discoverableApps(in: catalog, for: "A")?.map(\.id) == ["available"],
       "Exclude installed apps by their case-insensitive Bundle ID, regardless of version.")
     try require(
-      store.uninstalledApps(in: catalog, for: "B") == nil,
+      store.discoverableApps(in: catalog, for: "B") == nil,
       "A snapshot may only filter its own simulator.")
     let failed = Task { await store.refresh(for: selected) }
     try await eventually { await probe.calls.count == 2 }
@@ -53,14 +54,14 @@ struct InstalledAppsStoreTests {
     await retry.value
     try require(
       store.error == nil && store.bundleIDs == []
-        && store.uninstalledApps(in: catalog, for: "A")?.count == catalog.apps.count,
+        && store.discoverableApps(in: catalog, for: "A")?.count == catalog.apps.count,
       "A confirmed empty installation set exposes the full catalog and clears the prior error.")
     let externalInstall = Task { await store.refresh(for: selected) }
     try await eventually { await probe.calls.count == 4 }
     await probe.finish(3, with: .success(["io.example.Available"]))
     await externalInstall.value
     try require(
-      store.uninstalledApps(in: catalog, for: "A")?.map(\.id) == ["installed", "case-variant"],
+      store.discoverableApps(in: catalog, for: "A")?.map(\.id) == ["installed", "case-variant"],
       "A later query must reflect apps installed outside SimStore.")
   }
 
@@ -211,6 +212,45 @@ struct InstalledAppsStoreTests {
         description: ["en": "An example app."], categories: ["utilities"], versions: [version])
     }
     return AppCatalog(schemaVersion: 1, apps: apps)
+  }
+
+  static func retainInstalledAppsForCurrentVisit() async throws {
+    let current = catalog()
+    let store = InstalledAppsStore(load: { _ in ["io.example.Installed", "io.example.Available"] })
+    await store.refresh(for: device("A"))
+    try require(
+      store.discoverableApps(in: current, for: "A")?.map(\.id) == ["case-variant"],
+      "Hide apps installed before this visit.")
+    store.recordInstallation(bundleID: "io.example.AVAILABLE", deviceID: "A")
+    try require(
+      store.discoverableApps(in: current, for: "A")?.map(\.id) == ["available", "case-variant"],
+      "Keep newly installed apps in their original catalog order.")
+    try require(
+      store.isInstalled(bundleID: "io.example.Available", deviceID: "A") == true,
+      "The retained card must offer Open.")
+    store.removeRecentInstallation(bundleID: "io.example.Available", deviceID: "B")
+    try require(
+      store.discoverableApps(in: current, for: "A")?.map(\.id) == ["available", "case-variant"],
+      "Opening on another device must not remove this device's card.")
+    await store.refresh(for: device("A"))
+    try require(
+      store.discoverableApps(in: current, for: "A")?.map(\.id) == ["available", "case-variant"],
+      "Automatic inventory refresh must retain the current visit.")
+    store.removeRecentInstallation(bundleID: "io.example.AVAILABLE", deviceID: "A")
+    try require(
+      store.discoverableApps(in: current, for: "A")?.map(\.id) == ["case-variant"],
+      "Remove a successfully opened app from the current visit.")
+    store.recordInstallation(bundleID: "io.example.Available", deviceID: "A")
+    store.clearRecentInstallations()
+    try require(
+      store.discoverableApps(in: current, for: "A")?.map(\.id) == ["case-variant"],
+      "Explicit catalog refresh clears retained installations.")
+    store.recordInstallation(bundleID: "io.example.Available", deviceID: "A")
+    await store.refresh(for: device("B"))
+    await store.refresh(for: device("A"))
+    try require(
+      store.discoverableApps(in: current, for: "A")?.map(\.id) == ["case-variant"],
+      "Switching simulators begins a new visit.")
   }
 
   static func eventually(_ condition: () async -> Bool) async throws {

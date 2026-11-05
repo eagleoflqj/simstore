@@ -14,6 +14,23 @@ target_compile_options(SimStoreCommandTest PRIVATE -parse-as-library)
 add_test(NAME command COMMAND SimStoreCommandTest)
 set_tests_properties(command PROPERTIES TIMEOUT 10)
 
+add_executable(SimStoreCatalogTest AppCatalogTests.swift
+    "${PROJECT_SOURCE_DIR}/src/AppCatalog.swift"
+)
+target_compile_options(SimStoreCatalogTest PRIVATE -parse-as-library)
+add_test(NAME catalog COMMAND SimStoreCatalogTest)
+set_tests_properties(catalog PROPERTIES TIMEOUT 10)
+
+add_executable(SimStoreCatalogLoadingTest CatalogLoadingTests.swift
+    "${PROJECT_SOURCE_DIR}/src/AppCatalog.swift"
+    "${PROJECT_SOURCE_DIR}/src/CatalogClient.swift"
+    "${PROJECT_SOURCE_DIR}/src/CatalogStore.swift"
+    "${PROJECT_SOURCE_DIR}/src/AppConfiguration.swift"
+)
+target_compile_options(SimStoreCatalogLoadingTest PRIVATE -parse-as-library)
+add_test(NAME catalog-loading COMMAND SimStoreCatalogLoadingTest)
+set_tests_properties(catalog-loading PROPERTIES TIMEOUT 15)
+
 add_executable(SimStoreDiscoveryTest SimulatorDiscoveryTests.swift
     "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
     "${PROJECT_SOURCE_DIR}/src/Command.swift"
@@ -28,6 +45,26 @@ add_executable(SimStoreControlTest SimulatorControlTests.swift
 target_compile_options(SimStoreControlTest PRIVATE -parse-as-library)
 add_test(NAME simulator-control COMMAND SimStoreControlTest)
 set_tests_properties(simulator-control PROPERTIES TIMEOUT 15)
+
+add_executable(SimStoreApplicationsTest SimulatorApplicationsTests.swift
+    "${PROJECT_SOURCE_DIR}/src/SimulatorApplications.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/Command.swift"
+)
+target_compile_options(SimStoreApplicationsTest PRIVATE -parse-as-library)
+add_test(NAME simulator-applications COMMAND SimStoreApplicationsTest)
+set_tests_properties(simulator-applications PROPERTIES TIMEOUT 15)
+
+add_executable(SimStoreInstalledAppsTest InstalledAppsStoreTests.swift
+    "${PROJECT_SOURCE_DIR}/src/InstalledAppsStore.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorApplications.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/Command.swift"
+    "${PROJECT_SOURCE_DIR}/src/AppCatalog.swift"
+)
+target_compile_options(SimStoreInstalledAppsTest PRIVATE -parse-as-library)
+add_test(NAME installed-apps COMMAND SimStoreInstalledAppsTest)
+set_tests_properties(installed-apps PROPERTIES TIMEOUT 15)
 
 add_executable(SimStoreStoreTest SimulatorStoreTests.swift
     "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"

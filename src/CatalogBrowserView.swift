@@ -1,0 +1,289 @@
+import SwiftUI
+
+@MainActor
+struct CatalogBrowserView: View {
+  let store: CatalogStore
+  let installedApps: InstalledAppsStore
+  let device: SimulatorDevice
+  let isStarting: Bool
+  let deviceManagerName: String?
+  let startSimulator: () -> Void
+  let openDeviceManager: () -> Void
+
+  @State private var query = ""
+  @State private var category = ""
+  @State private var selectedApp: CatalogApp?
+  @State private var showsSimulator = false
+  @FocusState private var focusedAppID: String?
+
+  private var categories: [String] {
+    Array(Set(availableApps?.flatMap(\.categories) ?? [])).sorted()
+  }
+
+  private var availableApps: [CatalogApp]? {
+    guard device.state == "Booted", let catalog = store.catalog else { return nil }
+    return installedApps.uninstalledApps(in: catalog, for: device.id)
+  }
+
+  private var apps: [CatalogApp] {
+    (availableApps ?? []).filter { app in
+      (category.isEmpty || app.categories.contains(category))
+        && (query.isEmpty
+          || [app.name, app.displayDescription, app.bundleID, app.categoryTitle]
+            .contains { $0.localizedStandardContains(query) })
+    }
+    .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+  }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 20) {
+      heading
+      simulatorSummary
+      if let catalog = store.catalog {
+        if let error = store.error {
+          HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "wifi.exclamationmark").foregroundStyle(.orange)
+            VStack(alignment: .leading, spacing: 4) {
+              Text("Showing Saved Catalog").fontWeight(.medium)
+              Text(verbatim: error).foregroundStyle(.secondary).textSelection(.enabled)
+            }
+          }
+          .font(.system(size: 12))
+          .padding(12)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .background(Color.orange.opacity(0.07), in: RoundedRectangle(cornerRadius: 10))
+        }
+        if let availableApps {
+          collection(catalog, availableApps: availableApps)
+        } else {
+          InstalledAppsStatusView(
+            device: device, store: installedApps, refresh: refreshInstalledApps)
+        }
+      } else if store.isLoading {
+        VStack(spacing: 14) {
+          ProgressView()
+          Text("Loading Apps…").foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      } else {
+        ContentUnavailableView {
+          Label("Catalog Unavailable", systemImage: "wifi.exclamationmark")
+        } description: {
+          Text(verbatim: store.error ?? String(localized: "Refresh the catalog to load apps."))
+        } actions: {
+          CatalogRefreshButton(isLoading: store.isLoading, refresh: refresh)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      }
+    }
+    .padding(.horizontal, 28)
+    .padding(.top, 28)
+    .task { await store.refresh() }
+    .task(id: device) { await installedApps.refresh(for: device) }
+    .onChange(of: categories) { _, values in
+      guard availableApps != nil else { return }
+      if !category.isEmpty && !values.contains(category) { category = "" }
+    }
+    .sheet(item: $selectedApp) { app in
+      CatalogAppDetailView(app: app, runtime: device.runtime)
+    }
+    .popover(isPresented: $showsSimulator) {
+      SimulatorDetailView(
+        device: device, isStarting: isStarting, deviceManagerName: deviceManagerName,
+        start: startSimulator, openDeviceManager: openDeviceManager
+      )
+      .frame(width: 480)
+    }
+  }
+
+  private var heading: some View {
+    HStack(alignment: .top, spacing: 20) {
+      DiscoverHeading()
+      Spacer(minLength: 0)
+      TextField(text: $query) {
+        Text("Search apps")
+      }
+      .textFieldStyle(.roundedBorder)
+      .accessibilityIdentifier("catalog-search")
+      .frame(width: 180)
+      .padding(.top, 5)
+    }
+  }
+
+  private var simulatorSummary: some View {
+    HStack(spacing: 10) {
+      Image(systemName: device.symbolName)
+        .frame(width: 18, height: 24)
+        .foregroundStyle(Color.accentColor)
+        .accessibilityHidden(true)
+      VStack(alignment: .leading, spacing: 3) {
+        Text(verbatim: device.name).fontWeight(.medium)
+        Text(verbatim: "\(device.runtimeLabel) · \(device.stateLabel(isStarting: isStarting))")
+          .font(.system(size: 11)).foregroundStyle(.secondary)
+      }
+      .lineLimit(1)
+      Spacer(minLength: 12)
+      if device.canStart || isStarting {
+        SimulatorStartButton(
+          isStarting: isStarting || device.state == "Booting", action: startSimulator)
+      }
+      Button {
+        showsSimulator = true
+      } label: {
+        Label("Simulator Details", systemImage: "info.circle")
+      }
+      .labelStyle(.iconOnly)
+      .accessibilityIdentifier("simulator-details")
+    }
+    .font(.system(size: 12))
+    .controlSize(.small)
+    .padding(12)
+    .background(Color.accentColor.opacity(0.05), in: RoundedRectangle(cornerRadius: 10))
+  }
+
+  private func collection(_ catalog: AppCatalog, availableApps: [CatalogApp]) -> some View {
+    VStack(spacing: 14) {
+      HStack(spacing: 12) {
+        Picker("Category", selection: $category) {
+          Text("All Apps").tag("")
+          ForEach(categories, id: \.self) { value in
+            Text(verbatim: CatalogCategory.title(value)).tag(value)
+          }
+        }
+        .frame(maxWidth: 200)
+        .accessibilityIdentifier("catalog-category")
+        Spacer(minLength: 0)
+        Text(verbatim: "\(apps.count) / \(availableApps.count)")
+          .monospacedDigit().foregroundStyle(.secondary)
+        CatalogRefreshButton(isLoading: store.isLoading, refresh: refresh)
+          .labelStyle(.iconOnly)
+      }
+      if catalog.apps.isEmpty {
+        ContentUnavailableView {
+          Label("No Apps Available", systemImage: "square.grid.2x2")
+        } description: {
+          Text("Published apps will appear here.")
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      } else if availableApps.isEmpty {
+        ContentUnavailableView {
+          Label("All Apps Are Installed", systemImage: "checkmark.circle")
+        } description: {
+          Text("Every app in the catalog is already installed on this simulator.")
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      } else if apps.isEmpty {
+        ContentUnavailableView.search(text: query)
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+      } else {
+        appGrid
+      }
+    }
+  }
+
+  private var appGrid: some View {
+    GeometryReader { geometry in
+      let columns = max(1, Int((geometry.size.width + 16) / 280))
+      let cardWidth = (geometry.size.width - 6 - CGFloat(columns - 1) * 16) / CGFloat(columns)
+      let visibleApps = apps
+      ScrollViewReader { proxy in
+        ScrollView {
+          Grid(horizontalSpacing: 16, verticalSpacing: 16) {
+            ForEach(0..<((visibleApps.count + columns - 1) / columns), id: \.self) { row in
+              GridRow {
+                ForEach(0..<columns, id: \.self) { column in
+                  let index = row * columns + column
+                  if index < visibleApps.count {
+                    let app = visibleApps[index]
+                    Button {
+                      selectedApp = app
+                    } label: {
+                      CatalogAppCard(app: app, runtime: device.runtime)
+                        .frame(width: cardWidth)
+                    }
+                    .buttonStyle(.plain)
+                    .focused($focusedAppID, equals: app.id)
+                    .id(app.id)
+                    .accessibilityLabel(Text(verbatim: app.name))
+                    .accessibilityValue(
+                      Text(
+                        verbatim:
+                          "\(app.displayDescription) · \(app.recommendedVersion(for: device.runtime).version) · \(app.recommendedVersion(for: device.runtime).minimumOSLabel)"
+                      )
+                    )
+                    .accessibilityHint(Text("View app details and versions"))
+                    .accessibilityIdentifier("catalog-app-\(app.id)")
+                    .help(Text(verbatim: app.displayDescription))
+                  } else {
+                    Color.clear.frame(width: cardWidth)
+                      .gridCellUnsizedAxes(.vertical)
+                      .accessibilityHidden(true)
+                  }
+                }
+              }
+            }
+          }
+          .padding(3)
+          .padding(.bottom, 24)
+        }
+        .defaultScrollAnchor(.top)
+        .onChange(of: focusedAppID) { _, id in
+          if let id { proxy.scrollTo(id, anchor: .center) }
+        }
+      }
+    }
+  }
+
+  private func refreshInstalledApps() { Task { await installedApps.refresh(for: device) } }
+
+  private func refresh() {
+    Task { await store.refresh() }
+    refreshInstalledApps()
+  }
+}
+
+private struct CatalogAppCard: View {
+  let app: CatalogApp
+  let runtime: String
+
+  var body: some View {
+    let version = app.recommendedVersion(for: runtime)
+    VStack(alignment: .leading, spacing: 14) {
+      HStack(spacing: 12) {
+        CatalogIcon(app: app)
+        VStack(alignment: .leading, spacing: 4) {
+          Text(verbatim: app.name)
+            .font(.system(size: 15, weight: .semibold))
+            .lineLimit(2, reservesSpace: true)
+          Text(verbatim: app.categoryTitle)
+            .font(.system(size: 10)).foregroundStyle(.secondary)
+            .lineLimit(1)
+        }
+        Spacer(minLength: 0)
+      }
+      Text(verbatim: app.displayDescription)
+        .font(.system(size: 12)).foregroundStyle(.secondary)
+        .lineLimit(2, reservesSpace: true)
+        .frame(maxWidth: .infinity, alignment: .leading)
+      HStack {
+        Text(verbatim: version.version).monospacedDigit()
+        Spacer(minLength: 4)
+        if !version.isCompatible(with: runtime) {
+          Label("iOS \(version.minSimulatorOS)+", systemImage: "exclamationmark.triangle")
+            .foregroundStyle(.orange)
+        } else {
+          Text(verbatim: ByteCountFormatter.string(fromByteCount: version.size, countStyle: .file))
+            .foregroundStyle(.secondary)
+        }
+      }
+      .font(.system(size: 11))
+    }
+    .padding(18)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 14))
+    .overlay {
+      RoundedRectangle(cornerRadius: 14).strokeBorder(Color.primary.opacity(0.07))
+    }
+    .contentShape(RoundedRectangle(cornerRadius: 14))
+  }
+}

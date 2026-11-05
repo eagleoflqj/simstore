@@ -17,6 +17,7 @@ add_executable(SimStore MACOSX_BUNDLE
     CatalogClient.swift
     CatalogStore.swift
     CatalogPresentation.swift
+    IconCache.swift
     CatalogBrowserView.swift
     CatalogAppDetailView.swift
     SidebarView.swift

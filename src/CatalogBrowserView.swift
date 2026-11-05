@@ -12,9 +12,9 @@ struct CatalogBrowserView: View {
 
   @State private var query = ""
   @State private var category = ""
-  @State private var selectedApp: CatalogApp?
   @State private var showsSimulator = false
-  @FocusState private var focusedAppID: String?
+  @State private var visibleRow: Int?
+  @State private var gridHeight: CGFloat = 0
 
   private var categories: [String] {
     Array(Set(availableApps?.flatMap(\.categories) ?? [])).sorted()
@@ -83,9 +83,6 @@ struct CatalogBrowserView: View {
     .onChange(of: categories) { _, values in
       guard availableApps != nil else { return }
       if !category.isEmpty && !values.contains(category) { category = "" }
-    }
-    .sheet(item: $selectedApp) { app in
-      CatalogAppDetailView(app: app, runtime: device.runtime)
     }
     .popover(isPresented: $showsSimulator) {
       SimulatorDetailView(
@@ -186,24 +183,20 @@ struct CatalogBrowserView: View {
       let columns = max(1, Int((geometry.size.width + 16) / 280))
       let cardWidth = (geometry.size.width - 6 - CGFloat(columns - 1) * 16) / CGFloat(columns)
       let visibleApps = apps
-      ScrollViewReader { proxy in
-        ScrollView {
-          Grid(horizontalSpacing: 16, verticalSpacing: 16) {
-            ForEach(0..<((visibleApps.count + columns - 1) / columns), id: \.self) { row in
-              GridRow {
-                ForEach(0..<columns, id: \.self) { column in
-                  let index = row * columns + column
-                  if index < visibleApps.count {
-                    let app = visibleApps[index]
-                    Button {
-                      selectedApp = app
-                    } label: {
-                      CatalogAppCard(app: app, runtime: device.runtime)
-                        .frame(width: cardWidth)
-                    }
-                    .buttonStyle(.plain)
-                    .focused($focusedAppID, equals: app.id)
-                    .id(app.id)
+      let rowCount = (visibleApps.count + columns - 1) / columns
+      let rowHeight = gridHeight > 0 ? (gridHeight + 16) / CGFloat(rowCount) : geometry.size.height
+      let pageRows = max(1, Int(geometry.size.height / max(rowHeight, 1)))
+      ScrollView {
+        Grid(horizontalSpacing: 16, verticalSpacing: 16) {
+          ForEach(0..<rowCount, id: \.self) { row in
+            GridRow {
+              ForEach(0..<columns, id: \.self) { column in
+                let index = row * columns + column
+                if index < visibleApps.count {
+                  let app = visibleApps[index]
+                  CatalogAppCard(app: app, runtime: device.runtime)
+                    .frame(width: cardWidth)
+                    .accessibilityElement(children: .combine)
                     .accessibilityLabel(Text(verbatim: app.name))
                     .accessibilityValue(
                       Text(
@@ -211,25 +204,48 @@ struct CatalogBrowserView: View {
                           "\(app.displayDescription) · \(app.recommendedVersion(for: device.runtime).version) · \(app.recommendedVersion(for: device.runtime).minimumOSLabel)"
                       )
                     )
-                    .accessibilityHint(Text("View app details and versions"))
                     .accessibilityIdentifier("catalog-app-\(app.id)")
                     .help(Text(verbatim: app.displayDescription))
-                  } else {
-                    Color.clear.frame(width: cardWidth)
-                      .gridCellUnsizedAxes(.vertical)
-                      .accessibilityHidden(true)
-                  }
+                } else {
+                  Color.clear.frame(width: cardWidth)
+                    .gridCellUnsizedAxes(.vertical)
+                    .accessibilityHidden(true)
                 }
               }
             }
+            .id(row)
           }
-          .padding(3)
-          .padding(.bottom, 24)
         }
-        .defaultScrollAnchor(.top)
-        .onChange(of: focusedAppID) { _, id in
-          if let id { proxy.scrollTo(id, anchor: .center) }
+        .scrollTargetLayout()
+        .onGeometryChange(for: CGFloat.self) {
+          $0.size.height
+        } action: {
+          gridHeight = $0
         }
+        .padding(3)
+        .padding(.bottom, 24)
+      }
+      .focusable()
+      .accessibilityLabel(Text("Apps"))
+      .accessibilityIdentifier("catalog-apps")
+      .defaultScrollAnchor(.top)
+      .scrollPosition(id: $visibleRow, anchor: .top)
+      .onKeyPress(
+        keys: [.upArrow, .downArrow, .pageUp, .pageDown, .home, .end], phases: [.down, .repeat]
+      ) { press in
+        let current = visibleRow ?? 0
+        let target: Int
+        switch press.key {
+        case .upArrow: target = current - 1
+        case .downArrow: target = current + 1
+        case .pageUp: target = current - pageRows
+        case .pageDown: target = current + pageRows
+        case .home: target = 0
+        case .end: target = rowCount - 1
+        default: return .ignored
+        }
+        visibleRow = min(max(target, 0), rowCount - 1)
+        return .handled
       }
     }
   }

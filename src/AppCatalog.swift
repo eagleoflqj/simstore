@@ -38,7 +38,7 @@ struct CatalogApp: Identifiable, Hashable, Sendable {
   }
 }
 
-struct CatalogVersion: Identifiable, Hashable, Sendable {
+struct CatalogVersion: Hashable, Sendable {
   let version: String
   let minSimulatorOS: String
   let sha256: String
@@ -46,8 +46,6 @@ struct CatalogVersion: Identifiable, Hashable, Sendable {
   let revision: String
   let recipeRevision: String
   let time: Int64
-
-  var id: String { version }
 
   func isCompatible(with runtime: String) -> Bool {
     guard let minimum = CatalogVersionNumber(minSimulatorOS),

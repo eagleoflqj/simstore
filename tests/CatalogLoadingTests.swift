@@ -28,10 +28,6 @@ struct CatalogLoadingTests {
         == "https://github.com/iSimStore/simstore-builds/releases/download/latest/index.json",
       "Load the aggregated index from the latest release.")
     try require(
-      AppConfiguration.releaseURL(appID: "localsend", version: "1.17.0").absoluteString
-        == "https://github.com/iSimStore/simstore-builds/releases/tag/localsend%2F1.17.0",
-      "Encode app ID and version as a single release-tag path component.")
-    try require(
       AppConfiguration.assetURL(appID: "localsend", version: "1.17.0", filename: "icon.png")
         .absoluteString
         == "https://github.com/iSimStore/simstore-builds/releases/download/localsend%2F1.17.0/icon.png",

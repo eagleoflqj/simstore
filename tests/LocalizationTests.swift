@@ -40,6 +40,13 @@ struct LocalizationTests {
         ("Shutdown", "Shutdown", "已关机"),
         ("Booting", "Booting", "正在启动"),
         ("Shutting Down", "Shutting Down", "正在关机"),
+        ("All Apps", "All Apps", "全部应用"),
+        ("Search apps", "Search apps", "搜索应用"),
+        ("Refresh Catalog", "Refresh Catalog", "刷新目录"),
+        ("Cloud", "Cloud", "云服务"),
+        ("Security", "Security", "安全"),
+        ("Catalog Unavailable", "Catalog Unavailable", "无法获取应用目录"),
+        ("Showing Saved Catalog", "Showing Saved Catalog", "正在显示已缓存的目录"),
       ]
       for (key, source, translated) in labels {
         try expect(
@@ -75,6 +82,11 @@ struct LocalizationTests {
       let runtime = "27.0"
       try expect(
         String(localized: "iOS \(runtime)", bundle: bundle, locale: locale), "iOS 27.0")
+      let status = 503
+      try expect(
+        String(
+          localized: "The app repository returned HTTP \(status).", bundle: bundle, locale: locale),
+        english ? "The app repository returned HTTP 503." : "应用仓库返回了 HTTP 503。")
     }
   }
 

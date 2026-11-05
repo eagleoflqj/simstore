@@ -4,6 +4,8 @@ import SwiftUI
 @MainActor
 struct ContentView: View {
   @State private var simulators: SimulatorStore
+  @State private var catalog: CatalogStore
+  @State private var installedApps: InstalledAppsStore
   @State private var launchError: String?
 
   private static var installedXcodeURL: URL? {
@@ -21,9 +23,15 @@ struct ContentView: View {
     },
     boot: @escaping @Sendable (String) async throws -> Void = {
       try await SimulatorControl.boot($0)
+    },
+    catalogClient: CatalogClient = .live,
+    loadInstalledApps: @escaping @Sendable (SimulatorDevice) async throws -> Set<String> = {
+      try await SimulatorApplications.installedBundleIDs(on: $0)
     }
   ) {
     _simulators = State(initialValue: SimulatorStore(discover: discover, boot: boot))
+    _catalog = State(initialValue: CatalogStore(client: catalogClient))
+    _installedApps = State(initialValue: InstalledAppsStore(load: loadInstalledApps))
   }
 
   private var needsXcode: Bool {
@@ -57,15 +65,10 @@ struct ContentView: View {
           discoveryContent
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-          VStack(alignment: .leading, spacing: 7) {
-            Text("Discover")
-              .font(.system(size: 30, weight: .bold))
-              .tracking(-0.8)
-            Text("Open-source favorites. Built for your simulator.")
-              .font(.system(size: 13))
-              .foregroundStyle(.secondary)
+          if simulators.selectedDevice == nil || discovery == nil {
+            DiscoverHeading()
+              .padding(32)
           }
-          .padding(32)
         }
         .frame(width: geometry.size.width, height: geometry.size.height)
         .background(Color(nsColor: .textBackgroundColor))
@@ -140,10 +143,11 @@ struct ContentView: View {
         openDeviceManager: openDeviceManager, openXcode: openXcode, checkAgain: checkAgain)
     case .some(.success):
       if let device = simulators.selectedDevice {
-        SimulatorDetailView(
-          device: device, isStarting: simulators.isStartingSelectedDevice,
+        CatalogBrowserView(
+          store: catalog, installedApps: installedApps, device: device,
+          isStarting: simulators.isStartingSelectedDevice,
           deviceManagerName: deviceManager?.name,
-          start: startSimulator,
+          startSimulator: startSimulator,
           openDeviceManager: openDeviceManager)
       }
     case .some(.failure) where needsXcode:
@@ -157,7 +161,10 @@ struct ContentView: View {
   }
 
   private func checkAgain() {
-    Task { await simulators.refresh() }
+    Task {
+      await simulators.refresh()
+      if let device = simulators.selectedDevice { await installedApps.refresh(for: device) }
+    }
   }
 
   private func startSimulator() {

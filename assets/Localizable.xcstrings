@@ -81,6 +81,38 @@
         }
       }
     },
+    "All Apps": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Apps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部应用"
+          }
+        }
+      }
+    },
+    "All Apps Are Installed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Apps Are Installed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部应用均已安装"
+          }
+        }
+      }
+    },
     "App Repository": {
       "localizations": {
         "en": {
@@ -93,6 +125,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "应用仓库"
+          }
+        }
+      }
+    },
+    "Apps": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用"
           }
         }
       }
@@ -125,6 +173,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在启动"
+          }
+        }
+      }
+    },
+    "Browser": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browser"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浏览器"
+          }
+        }
+      }
+    },
+    "Catalog Unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Catalog Unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法获取应用目录"
+          }
+        }
+      }
+    },
+    "Category": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Category"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分类"
           }
         }
       }
@@ -177,6 +273,22 @@
         }
       }
     },
+    "Checking Installed Apps…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking Installed Apps…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检查已安装的应用…"
+          }
+        }
+      }
+    },
     "Checking for devices…": {
       "localizations": {
         "en": {
@@ -209,6 +321,38 @@
         }
       }
     },
+    "Cloud": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cloud"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "云服务"
+          }
+        }
+      }
+    },
+    "Communication": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Communication"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通信"
+          }
+        }
+      }
+    },
     "Couldn’t Open Application": {
       "localizations": {
         "en": {
@@ -221,6 +365,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法打开应用"
+          }
+        }
+      }
+    },
+    "Couldn’t Read Installed Apps": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t Read Installed Apps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取已安装的应用"
           }
         }
       }
@@ -337,6 +497,22 @@
         }
       }
     },
+    "Every app in the catalog is already installed on this simulator.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every app in the catalog is already installed on this simulator."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目录中的所有应用均已安装在此模拟器中。"
+          }
+        }
+      }
+    },
     "Install Xcode to add iPhone and iPad simulators.": {
       "localizations": {
         "en": {
@@ -369,6 +545,22 @@
         }
       }
     },
+    "Loading Apps…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading Apps…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载应用…"
+          }
+        }
+      }
+    },
     "Looking for your simulators…": {
       "localizations": {
         "en": {
@@ -397,6 +589,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "请确认已安装 Xcode 并选中其命令行工具，然后重试。"
+          }
+        }
+      }
+    },
+    "Media": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Media"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "媒体"
+          }
+        }
+      }
+    },
+    "No Apps Available": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Apps Available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可用应用"
           }
         }
       }
@@ -561,6 +785,70 @@
         }
       }
     },
+    "Productivity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Productivity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "效率"
+          }
+        }
+      }
+    },
+    "Published apps will appear here.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published apps will appear here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发布的应用将显示在这里。"
+          }
+        }
+      }
+    },
+    "Refresh Catalog": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh Catalog"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新目录"
+          }
+        }
+      }
+    },
+    "Refresh the catalog to load apps.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh the catalog to load apps."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请刷新目录以加载应用。"
+          }
+        }
+      }
+    },
     "Runtime": {
       "localizations": {
         "en": {
@@ -573,6 +861,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "运行时"
+          }
+        }
+      }
+    },
+    "Search apps": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search apps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索应用"
+          }
+        }
+      }
+    },
+    "Security": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Security"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全"
+          }
+        }
+      }
+    },
+    "Showing Saved Catalog": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Showing Saved Catalog"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在显示已缓存的目录"
           }
         }
       }
@@ -625,6 +961,38 @@
         }
       }
     },
+    "Simulator Details": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simulator Details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模拟器详情"
+          }
+        }
+      }
+    },
+    "Simulator Not Running": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simulator Not Running"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模拟器尚未运行"
+          }
+        }
+      }
+    },
     "Simulators": {
       "localizations": {
         "en": {
@@ -641,6 +1009,22 @@
         }
       }
     },
+    "Social": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Social"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "社交"
+          }
+        }
+      }
+    },
     "Start Simulator": {
       "localizations": {
         "en": {
@@ -653,6 +1037,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "启动模拟器"
+          }
+        }
+      }
+    },
+    "Start the simulator. SimStore will automatically show apps that aren’t installed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start the simulator. SimStore will automatically show apps that aren’t installed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启动模拟器后，SimStore 会自动显示尚未安装的应用。"
           }
         }
       }
@@ -689,6 +1089,70 @@
         }
       }
     },
+    "The app catalog is invalid. Try refreshing it again later.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The app catalog is invalid. Try refreshing it again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用目录无效，请稍后重新刷新。"
+          }
+        }
+      }
+    },
+    "The app repository returned HTTP %lld.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The app repository returned HTTP %lld."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用仓库返回了 HTTP %lld。"
+          }
+        }
+      }
+    },
+    "The app repository returned an invalid response.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The app repository returned an invalid response."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用仓库返回了无效响应。"
+          }
+        }
+      }
+    },
+    "The simulator returned an invalid app list.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The simulator returned an invalid app list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模拟器返回了无效的应用清单。"
+          }
+        }
+      }
+    },
     "Try Again": {
       "localizations": {
         "en": {
@@ -705,6 +1169,38 @@
         }
       }
     },
+    "Try again to load the app list.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again to load the app list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请重试以加载应用列表。"
+          }
+        }
+      }
+    },
+    "Update SimStore to read this app catalog.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update SimStore to read this app catalog."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请更新 SimStore 以读取此应用目录。"
+          }
+        }
+      }
+    },
     "Updates": {
       "localizations": {
         "en": {
@@ -717,6 +1213,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "更新"
+          }
+        }
+      }
+    },
+    "Utilities": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工具"
           }
         }
       }
@@ -813,6 +1325,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "iOS %@"
+          }
+        }
+      }
+    },
+    "iOS %@ or later": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS %@ or later"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS %@ 或更高版本"
+          }
+        }
+      }
+    },
+    "iOS %@+": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS %@+"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS %@+"
           }
         }
       }

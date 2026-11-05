@@ -32,6 +32,10 @@ extension CatalogVersion {
   }
 }
 
+extension SimulatorApplication {
+  var displayVersion: String { version ?? String(localized: "Version Unavailable") }
+}
+
 struct CatalogIcon: View {
   let app: CatalogApp
   var size: CGFloat = 52

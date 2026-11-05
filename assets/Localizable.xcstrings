@@ -1,6 +1,22 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%@ and its data will be removed from %@.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ and its data will be removed from %2$@."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将从 %2$@ 中删除 %1$@ 及其数据。"
+          }
+        }
+      }
+    },
     "%@ couldn’t be opened. %@": {
       "localizations": {
         "en": {
@@ -125,6 +141,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "应用仓库"
+          }
+        }
+      }
+    },
+    "Apps from the catalog on this simulator.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps from the catalog on this simulator."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此模拟器上来自应用目录的应用。"
+          }
+        }
+      }
+    },
+    "Apps you install from this catalog will appear here.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps you install from this catalog will appear here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从此应用目录安装的应用会显示在这里。"
           }
         }
       }
@@ -689,6 +737,22 @@
         }
       }
     },
+    "Installed Version": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed Version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装版本"
+          }
+        }
+      }
+    },
     "Installing…": {
       "localizations": {
         "en": {
@@ -817,6 +881,22 @@
         }
       }
     },
+    "No Catalog Apps Installed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Catalog Apps Installed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未安装目录中的应用"
+          }
+        }
+      }
+    },
     "No devices to display": {
       "localizations": {
         "en": {
@@ -877,6 +957,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "好"
+          }
+        }
+      }
+    },
+    "Only installed user apps can be uninstalled. Refresh the app list and try again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only installed user apps can be uninstalled. Refresh the app list and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只能卸载已安装的用户应用。请刷新应用列表后重试。"
           }
         }
       }
@@ -1377,18 +1473,18 @@
         }
       }
     },
-    "Start the simulator. SimStore will automatically show apps that aren’t installed.": {
+    "Start the simulator. SimStore will automatically check its installed apps.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start the simulator. SimStore will automatically show apps that aren’t installed."
+            "value": "Start the simulator. SimStore will automatically check its installed apps."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "启动模拟器后，SimStore 会自动显示尚未安装的应用。"
+            "value": "启动模拟器后，SimStore 会自动检查其中已安装的应用。"
           }
         }
       }
@@ -1681,6 +1777,70 @@
         }
       }
     },
+    "Uninstall": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uninstall"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卸载"
+          }
+        }
+      }
+    },
+    "Uninstall %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uninstall %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卸载 %@"
+          }
+        }
+      }
+    },
+    "Uninstall %@?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uninstall %@?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卸载 %@？"
+          }
+        }
+      }
+    },
+    "Uninstalling…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uninstalling…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在卸载…"
+          }
+        }
+      }
+    },
     "Update SimStore to read this app catalog.": {
       "localizations": {
         "en": {
@@ -1757,6 +1917,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "版本"
+          }
+        }
+      }
+    },
+    "Version Unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version Unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本未知"
           }
         }
       }

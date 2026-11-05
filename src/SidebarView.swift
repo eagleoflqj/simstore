@@ -6,6 +6,7 @@ struct SidebarView: View {
   let discovery: SimulatorDiscovery?
   let isChecking: Bool
   let needsXcode: Bool
+  @Binding var section: LibrarySection
   let selectedDeviceID: String?
   let startingDeviceIDs: Set<String>
   let selectDevice: (String) -> Void
@@ -27,15 +28,30 @@ struct SidebarView: View {
       .fixedSize(horizontal: false, vertical: true)
 
       VStack(spacing: 5) {
-        Label("Discover", systemImage: "safari")
-          .font(.system(size: 13, weight: .semibold))
-          .foregroundStyle(Color.accentColor)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(.horizontal, 12)
-          .padding(.vertical, 11)
-          .background(Color.accentColor.opacity(0.10), in: RoundedRectangle(cornerRadius: 8))
-          .accessibilityAddTraits(.isSelected)
-        sidebarPlaceholder("Installed", systemImage: "square.grid.2x2")
+        ForEach(LibrarySection.allCases, id: \.self) { item in
+          Button {
+            section = item
+          } label: {
+            Label {
+              Text(verbatim: item.title)
+            } icon: {
+              Image(systemName: item.symbolName)
+            }
+            .font(.system(size: 13, weight: section == item ? .semibold : .regular))
+            .foregroundStyle(section == item ? Color.accentColor : Color.primary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 11)
+            .background(
+              section == item ? Color.accentColor.opacity(0.10) : Color.clear,
+              in: RoundedRectangle(cornerRadius: 8)
+            )
+            .contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
+          .accessibilityAddTraits(section == item ? .isSelected : [])
+          .accessibilityIdentifier("library-\(item.rawValue)")
+        }
         sidebarPlaceholder("Updates", systemImage: "arrow.triangle.2.circlepath")
       }
       .padding(.horizontal, 12)

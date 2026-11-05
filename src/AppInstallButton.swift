@@ -10,7 +10,7 @@ struct AppInstallButton: View {
   var isDefaultAction = false
 
   private enum Action: CaseIterable {
-    case install, open, cancel, installing, canceling, opening
+    case install, open, cancel, installing, canceling, opening, uninstalling
 
     var title: String {
       switch self {
@@ -20,6 +20,7 @@ struct AppInstallButton: View {
       case .installing: AppInstallationPhase.installing.title
       case .canceling: AppInstallationPhase.canceling.title
       case .opening: AppInstallationPhase.opening.title
+      case .uninstalling: AppInstallationPhase.uninstalling.title
       }
     }
   }
@@ -34,6 +35,7 @@ struct AppInstallButton: View {
     case .installing: .installing
     case .canceling: .canceling
     case .opening: .opening
+    case .uninstalling: .uninstalling
     case nil: isInstalled == true ? .open : .install
     }
   }
@@ -58,7 +60,7 @@ struct AppInstallButton: View {
       case .install: store.install(app: app, version: version, on: device)
       case .open: store.open(app: app, on: device)
       case .cancel: store.cancel(appID: app.id, deviceID: device.id)
-      case .installing, .canceling, .opening: break
+      case .installing, .canceling, .opening, .uninstalling: break
       }
     } label: {
       StableSizeView(action, states: Action.allCases) { value in
@@ -70,7 +72,7 @@ struct AppInstallButton: View {
     .keyboardShortcut(isDefaultAction && phase == nil ? .defaultAction : nil)
     .accessibilityLabel(Text(verbatim: "\(action.title) \(app.name)"))
     .accessibilityValue(Text(verbatim: phase?.summary(totalBytes: version.size) ?? ""))
-    .help(Text(verbatim: version.minimumOSLabel))
+    .help(Text(verbatim: isInstalled == true ? device.name : version.minimumOSLabel))
   }
 }
 

@@ -2,6 +2,7 @@ import SwiftUI
 
 @MainActor
 struct CatalogBrowserView: View {
+  let section: LibrarySection
   let store: CatalogStore
   let installedApps: InstalledAppsStore
   let installations: AppInstallationStore
@@ -23,7 +24,10 @@ struct CatalogBrowserView: View {
 
   private var availableApps: [CatalogApp]? {
     guard device.state == "Booted", let catalog = store.catalog else { return nil }
-    return installedApps.discoverableApps(in: catalog, for: device.id)
+    switch section {
+    case .discover: return installedApps.discoverableApps(in: catalog, for: device.id)
+    case .installed: return installedApps.installedApps(in: catalog, for: device.id)
+    }
   }
 
   private var apps: [CatalogApp] {
@@ -82,9 +86,10 @@ struct CatalogBrowserView: View {
     .task { await store.refresh() }
     .task(id: device) { await installedApps.refresh(for: device) }
     .onChange(of: installations.openedApp) { _, opened in
-      if let opened, opened.deviceID == device.id, selectedApp?.id == opened.appID {
-        selectedApp = nil
-      }
+      dismissDetails(matching: opened)
+    }
+    .onChange(of: installations.uninstalledApp) { _, uninstalled in
+      dismissDetails(matching: uninstalled)
     }
     .onChange(of: categories) { _, values in
       guard availableApps != nil else { return }
@@ -105,7 +110,7 @@ struct CatalogBrowserView: View {
 
   private var heading: some View {
     HStack(alignment: .top, spacing: 20) {
-      DiscoverHeading()
+      LibraryHeading(section: section)
       Spacer(minLength: 0)
       TextField(text: $query) {
         Text("Search apps")
@@ -172,6 +177,13 @@ struct CatalogBrowserView: View {
           Text("Published apps will appear here.")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+      } else if availableApps.isEmpty && section == .installed {
+        ContentUnavailableView {
+          Label("No Catalog Apps Installed", systemImage: "square.grid.2x2")
+        } description: {
+          Text("Apps you install from this catalog will appear here.")
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
       } else if availableApps.isEmpty {
         ContentUnavailableView {
           Label("All Apps Are Installed", systemImage: "checkmark.circle")
@@ -204,7 +216,8 @@ struct CatalogBrowserView: View {
                     let app = visibleApps[index]
                     CatalogAppCard(
                       app: app, device: device, installedApps: installedApps,
-                      installations: installations, focusedAppID: $focusedAppID,
+                      installations: installations, showsInstallation: section == .installed,
+                      focusedAppID: $focusedAppID,
                       showDetails: { selectedApp = app }
                     )
                     .frame(width: cardWidth)
@@ -230,6 +243,12 @@ struct CatalogBrowserView: View {
   }
 
   private func refreshInstalledApps() { Task { await installedApps.refresh(for: device) } }
+
+  private func dismissDetails(matching key: AppInstallationStore.Key?) {
+    if let key, key.deviceID == device.id, selectedApp?.id == key.appID {
+      selectedApp = nil
+    }
+  }
 
   private func refresh() {
     installedApps.clearRecentInstallations()

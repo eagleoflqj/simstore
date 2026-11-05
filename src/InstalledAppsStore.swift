@@ -5,26 +5,40 @@ import Observation
 @Observable
 final class InstalledAppsStore {
   private(set) var deviceID: String?
-  private(set) var bundleIDs: Set<String>?
+  private(set) var applications: [SimulatorApplication]?
+  var bundleIDs: Set<String>? { applications.map { Set($0.map(\.bundleID)) } }
   private(set) var isLoading = false
   private(set) var error: String?
   private var recentInstallations: Set<String> = []
 
   @ObservationIgnored
-  private let load: @Sendable (SimulatorDevice) async throws -> Set<String>
+  private let load: @Sendable (SimulatorDevice) async throws -> [SimulatorApplication]
   @ObservationIgnored
   private var selectedDevice: SimulatorDevice?
   @ObservationIgnored
   private var request: Request?
   @ObservationIgnored
-  private var installedDuringRefresh: Set<String> = []
+  private var installedDuringRefresh: [SimulatorApplication] = []
+  @ObservationIgnored
+  private var removedDuringRefresh: Set<String> = []
 
   init(
-    load: @escaping @Sendable (SimulatorDevice) async throws -> Set<String> = {
-      try await SimulatorApplications.installedBundleIDs(on: $0)
+    load: @escaping @Sendable (SimulatorDevice) async throws -> [SimulatorApplication] = {
+      try await SimulatorApplications.installedApps(on: $0)
     }
   ) {
     self.load = load
+  }
+
+  func installedApps(in catalog: AppCatalog, for deviceID: String) -> [CatalogApp]? {
+    guard self.deviceID == deviceID, let bundleIDs else { return nil }
+    let installed = Set(bundleIDs.map { $0.lowercased() })
+    return catalog.apps.filter { installed.contains($0.bundleID.lowercased()) }
+  }
+
+  func application(bundleID: String, deviceID: String) -> SimulatorApplication? {
+    guard self.deviceID == deviceID else { return nil }
+    return applications?.first { $0.bundleID.caseInsensitiveCompare(bundleID) == .orderedSame }
   }
 
   func discoverableApps(in catalog: AppCatalog, for deviceID: String) -> [CatalogApp]? {
@@ -43,11 +57,24 @@ final class InstalledAppsStore {
     recentInstallations.remove(bundleID.lowercased())
   }
 
-  func recordInstallation(bundleID: String, deviceID: String) {
+  func recordInstallation(_ application: SimulatorApplication, deviceID: String) {
     guard self.deviceID == deviceID else { return }
-    installedDuringRefresh.insert(bundleID)
-    recentInstallations.insert(bundleID.lowercased())
-    bundleIDs?.insert(bundleID)
+    let bundleID = application.bundleID.lowercased()
+    installedDuringRefresh.removeAll { $0.bundleID.lowercased() == bundleID }
+    installedDuringRefresh.append(application)
+    removedDuringRefresh.remove(bundleID)
+    recentInstallations.insert(bundleID)
+    applications?.removeAll { $0.bundleID.lowercased() == bundleID }
+    applications?.append(application)
+  }
+
+  func recordUninstallation(bundleID: String, deviceID: String) {
+    guard self.deviceID == deviceID else { return }
+    let bundleID = bundleID.lowercased()
+    installedDuringRefresh.removeAll { $0.bundleID.lowercased() == bundleID }
+    removedDuringRefresh.insert(bundleID)
+    recentInstallations.remove(bundleID)
+    applications?.removeAll { $0.bundleID.lowercased() == bundleID }
   }
 
   func isInstalled(bundleID: String, deviceID: String) -> Bool? {
@@ -70,7 +97,8 @@ final class InstalledAppsStore {
     selectedDevice = device
     deviceID = device.id
     installedDuringRefresh = []
-    bundleIDs = nil
+    removedDuringRefresh = []
+    applications = nil
     error = nil
     isLoading = true
     defer {
@@ -83,7 +111,13 @@ final class InstalledAppsStore {
     do {
       let installed = try await load(device)
       try Task.checkCancellation()
-      if request === pending { bundleIDs = installed.union(installedDuringRefresh) }
+      if request === pending {
+        let replaced = Set(installedDuringRefresh.map { $0.bundleID.lowercased() })
+          .union(removedDuringRefresh)
+        applications =
+          installed.filter { !replaced.contains($0.bundleID.lowercased()) }
+          + installedDuringRefresh
+      }
     } catch is CancellationError {
     } catch {
       if request === pending && !Task.isCancelled {

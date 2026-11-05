@@ -12,8 +12,10 @@ final class AppInstallationStore {
   private var phases: [Key: AppInstallationPhase] = [:]
   private var errors: [Key: String] = [:]
   private(set) var openedApp: Key?
+  private(set) var uninstalledApp: Key?
   @ObservationIgnored private let installer: AppInstaller
-  @ObservationIgnored private let didInstall: @MainActor (String, String) -> Void
+  @ObservationIgnored private let didInstall: @MainActor (SimulatorApplication, String) -> Void
+  @ObservationIgnored private let didUninstall: @MainActor (String, String) -> Void
   @ObservationIgnored private let showDevice: @MainActor (SimulatorDevice) async throws -> Void
   @ObservationIgnored private let didOpen: @MainActor (String, String) -> Void
   @ObservationIgnored private var jobs: [Key: Task<Void, Never>] = [:]
@@ -22,11 +24,13 @@ final class AppInstallationStore {
   init(
     installer: AppInstaller = AppInstaller(),
     showDevice: @escaping @MainActor (SimulatorDevice) async throws -> Void,
-    didInstall: @escaping @MainActor (String, String) -> Void = { _, _ in },
+    didInstall: @escaping @MainActor (SimulatorApplication, String) -> Void = { _, _ in },
+    didUninstall: @escaping @MainActor (String, String) -> Void = { _, _ in },
     didOpen: @escaping @MainActor (String, String) -> Void = { _, _ in }
   ) {
     self.installer = installer
     self.didInstall = didInstall
+    self.didUninstall = didUninstall
     self.showDevice = showDevice
     self.didOpen = didOpen
   }
@@ -59,10 +63,31 @@ final class AppInstallationStore {
             phases[key] = phase
           }
         }
-        didInstall(app.bundleID, device.id)
+        didInstall(
+          SimulatorApplication(
+            bundleID: app.bundleID, version: version.version, isUserApplication: true),
+          device.id)
       } catch is CancellationError {
       } catch {
         if !Task.isCancelled { errors[key] = error.localizedDescription }
+      }
+    }
+  }
+
+  func uninstall(app: CatalogApp, on device: SimulatorDevice) {
+    let key = Key(appID: app.id, deviceID: device.id)
+    guard jobs[key] == nil else { return }
+    uninstalledApp = nil
+    errors[key] = nil
+    phases[key] = .uninstalling
+    jobs[key] = Task {
+      defer { finish(key) }
+      do {
+        try await installer.uninstall(app: app, on: device)
+        didUninstall(app.bundleID, device.id)
+        uninstalledApp = key
+      } catch {
+        errors[key] = error.localizedDescription
       }
     }
   }

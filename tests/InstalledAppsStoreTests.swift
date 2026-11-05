@@ -12,6 +12,8 @@ struct InstalledAppsStoreTests {
       try await refreshedDeviceState()
       try await recordingInstallationDuringRefresh()
       try await retainInstalledAppsForCurrentVisit()
+      try await installedVersionsAndMatching()
+      try await recordingUninstallationDuringRefresh()
       print(
         "PASS: per-device installed apps, filtering, stale responses, errors, and cancellation.")
     } catch {
@@ -176,8 +178,8 @@ struct InstalledAppsStoreTests {
     let store = InstalledAppsStore(load: { try await probe.load($0) })
     let first = Task { await store.refresh(for: device("A")) }
     try await eventually { await probe.calls.count == 1 }
-    store.recordInstallation(bundleID: "org.example.WrongDevice", deviceID: "B")
-    store.recordInstallation(bundleID: "org.example.New", deviceID: "A")
+    store.recordInstallation(application("org.example.WrongDevice"), deviceID: "B")
+    store.recordInstallation(application("org.example.New"), deviceID: "A")
     try require(
       store.bundleIDs == nil,
       "An installation must not turn an unknown inventory into a complete snapshot.")
@@ -195,6 +197,12 @@ struct InstalledAppsStoreTests {
     await next.value
     try require(
       store.bundleIDs == [], "A later authoritative refresh must reflect external uninstalls.")
+  }
+
+  nonisolated static func application(_ bundleID: String, version: String? = "0.9.0")
+    -> SimulatorApplication
+  {
+    SimulatorApplication(bundleID: bundleID, version: version, isUserApplication: true)
   }
 
   static func catalog() -> AppCatalog {
@@ -216,12 +224,14 @@ struct InstalledAppsStoreTests {
 
   static func retainInstalledAppsForCurrentVisit() async throws {
     let current = catalog()
-    let store = InstalledAppsStore(load: { _ in ["io.example.Installed", "io.example.Available"] })
+    let store = InstalledAppsStore(load: { _ in
+      [application("io.example.Installed"), application("io.example.Available")]
+    })
     await store.refresh(for: device("A"))
     try require(
       store.discoverableApps(in: current, for: "A")?.map(\.id) == ["case-variant"],
       "Hide apps installed before this visit.")
-    store.recordInstallation(bundleID: "io.example.AVAILABLE", deviceID: "A")
+    store.recordInstallation(application("io.example.AVAILABLE"), deviceID: "A")
     try require(
       store.discoverableApps(in: current, for: "A")?.map(\.id) == ["available", "case-variant"],
       "Keep newly installed apps in their original catalog order.")
@@ -240,17 +250,77 @@ struct InstalledAppsStoreTests {
     try require(
       store.discoverableApps(in: current, for: "A")?.map(\.id) == ["case-variant"],
       "Remove a successfully opened app from the current visit.")
-    store.recordInstallation(bundleID: "io.example.Available", deviceID: "A")
+    store.recordInstallation(application("io.example.Available"), deviceID: "A")
     store.clearRecentInstallations()
     try require(
       store.discoverableApps(in: current, for: "A")?.map(\.id) == ["case-variant"],
       "Explicit catalog refresh clears retained installations.")
-    store.recordInstallation(bundleID: "io.example.Available", deviceID: "A")
+    store.recordInstallation(application("io.example.Available"), deviceID: "A")
     await store.refresh(for: device("B"))
     await store.refresh(for: device("A"))
     try require(
       store.discoverableApps(in: current, for: "A")?.map(\.id) == ["case-variant"],
       "Switching simulators begins a new visit.")
+  }
+
+  static func installedVersionsAndMatching() async throws {
+    let store = InstalledAppsStore(load: { device in
+      [
+        application("IO.EXAMPLE.INSTALLED", version: device.id == "A" ? "0.8.2" : "2.0-beta"),
+        application("io.example.Unknown", version: nil),
+        SimulatorApplication(
+          bundleID: "com.apple.mobilesafari", version: "27.0", isUserApplication: false),
+        application("org.example.NotInCatalog", version: "4.0"),
+      ]
+    })
+    let current = catalog()
+    await store.refresh(for: device("A"))
+    try require(
+      store.installedApps(in: current, for: "A")?.map(\.id) == ["installed", "case-variant"],
+      "Show only matching catalog apps, without unrelated or preinstalled Apple apps.")
+    try require(
+      store.application(bundleID: "io.example.Installed", deviceID: "A")?.version == "0.8.2",
+      "Keep the actual older installed version rather than the catalog's latest version.")
+    try require(
+      store.application(bundleID: "io.example.Unknown", deviceID: "A")?.version == nil,
+      "A missing installed version must remain unknown.")
+    try require(
+      store.installedApps(in: current, for: "B") == nil
+        && store.application(bundleID: "io.example.Installed", deviceID: "B") == nil,
+      "Never expose one simulator's installed version as another simulator's version.")
+    await store.refresh(for: device("B"))
+    try require(
+      store.application(bundleID: "io.example.Installed", deviceID: "B")?.version == "2.0-beta",
+      "Display arbitrary upstream version strings without forcing catalog version syntax.")
+  }
+
+  static func recordingUninstallationDuringRefresh() async throws {
+    let probe = InventoryProbe()
+    let store = InstalledAppsStore(load: { try await probe.load($0) })
+    let pending = Task { await store.refresh(for: device("A")) }
+    try await eventually { await probe.calls.count == 1 }
+    store.recordUninstallation(bundleID: "IO.EXAMPLE.INSTALLED", deviceID: "A")
+    store.recordUninstallation(bundleID: "io.example.Available", deviceID: "B")
+    await probe.finish(0, with: .success(["io.example.Installed", "io.example.Available"]))
+    await pending.value
+    try require(
+      store.bundleIDs == ["io.example.Available"],
+      "A confirmed uninstall must override an older in-flight inventory response on the same device."
+    )
+    store.recordInstallation(application("io.example.INSTALLED", version: "1.1.0"), deviceID: "A")
+    store.recordUninstallation(bundleID: "io.example.installed", deviceID: "A")
+    try require(
+      store.discoverableApps(in: catalog(), for: "A")?.map(\.id) == ["installed", "case-variant"],
+      "Uninstall removes a retained Open card and makes the app installable in Discover again.")
+    let next = Task { await store.refresh(for: device("A")) }
+    try await eventually { await probe.calls.count == 2 }
+    store.recordUninstallation(bundleID: "io.example.Installed", deviceID: "A")
+    store.recordInstallation(application("io.example.Installed", version: "1.2.0"), deviceID: "A")
+    await probe.finish(1, with: .success(["io.example.Installed"]))
+    await next.value
+    try require(
+      store.application(bundleID: "io.example.Installed", deviceID: "A")?.version == "1.2.0",
+      "The latest completed mutation wins when an app is reinstalled during a refresh.")
   }
 
   static func eventually(_ condition: () async -> Bool) async throws {
@@ -273,15 +343,18 @@ struct InstalledAppsStoreTests {
 
 private actor InventoryProbe {
   private(set) var calls: [SimulatorDevice] = []
-  private var pending: [Int: CheckedContinuation<Set<String>, Error>] = [:]
+  private var pending: [Int: CheckedContinuation<[SimulatorApplication], Error>] = [:]
 
-  func load(_ device: SimulatorDevice) async throws -> Set<String> {
+  func load(_ device: SimulatorDevice) async throws -> [SimulatorApplication] {
     let index = calls.count
     calls.append(device)
     return try await withCheckedThrowingContinuation { pending[index] = $0 }
   }
 
   func finish(_ index: Int, with result: Result<Set<String>, Error>) {
-    pending.removeValue(forKey: index)?.resume(with: result)
+    pending.removeValue(forKey: index)?.resume(
+      with: result.map {
+        $0.map { SimulatorApplication(bundleID: $0, version: "0.9.0", isUserApplication: true) }
+      })
   }
 }

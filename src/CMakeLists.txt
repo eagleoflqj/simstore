@@ -13,13 +13,14 @@ add_executable(SimStore MACOSX_BUNDLE
     SimulatorDevicePresentation.swift
     SimulatorSelectionViews.swift
     ContentView.swift
-    DiscoverHeading.swift
+    LibrarySection.swift
     AppCatalog.swift
     AppDownload.swift
     AppPackage.swift
     AppInstaller.swift
     AppInstallationStore.swift
     AppInstallButton.swift
+    AppUninstallButton.swift
     DownloadProgressView.swift
     CatalogClient.swift
     CatalogStore.swift

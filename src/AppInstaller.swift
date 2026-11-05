@@ -7,11 +7,12 @@ enum AppInstallationPhase: Equatable, Sendable {
   case installing
   case canceling
   case opening
+  case uninstalling
 
   var canCancel: Bool {
     switch self {
     case .downloading, .verifying, .extracting: true
-    case .installing, .canceling, .opening: false
+    case .installing, .canceling, .opening, .uninstalling: false
     }
   }
 
@@ -23,6 +24,7 @@ enum AppInstallationPhase: Equatable, Sendable {
     case .installing: String(localized: "Installing…")
     case .canceling: String(localized: "Canceling…")
     case .opening: String(localized: "Opening…")
+    case .uninstalling: String(localized: "Uninstalling…")
     }
   }
 
@@ -85,5 +87,9 @@ struct AppInstaller: Sendable {
 
   func open(app: CatalogApp, on device: SimulatorDevice) async throws {
     try await SimulatorApplications.launch(app.bundleID, on: device, command: command)
+  }
+
+  func uninstall(app: CatalogApp, on device: SimulatorDevice) async throws {
+    try await SimulatorApplications.uninstall(app.bundleID, on: device, command: command)
   }
 }

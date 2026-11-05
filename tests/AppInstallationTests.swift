@@ -14,6 +14,8 @@ struct AppInstallationTests {
       try await cancellationDuringPreparation()
       try await installingCannotBeCanceled()
       try await stoppedDevice()
+      try await uninstallJobs()
+      try await uninstallFailure()
       print(
         "PASS: package verification, safe extraction, Simulator binaries, install/open, per-device jobs, cancellation, failures, and cleanup."
       )
@@ -121,7 +123,7 @@ struct AppInstallationTests {
           "Present the target device only after its app has launched.")
         shownDevices.append(device)
       },
-      didInstall: { inventory.recordInstallation(bundleID: $0, deviceID: $1) },
+      didInstall: { inventory.recordInstallation($0, deviceID: $1) },
       didOpen: { _, deviceID in openedDevices.append(deviceID) })
     let version = InstallationFixtures.version(data: data)
     let app = InstallationFixtures.app(version: version)
@@ -165,6 +167,9 @@ struct AppInstallationTests {
     try InstallationFixtures.require(
       inventory.isInstalled(bundleID: app.bundleID, deviceID: a.id) == true,
       "A successful install updates the selected inventory immediately.")
+    try InstallationFixtures.require(
+      inventory.application(bundleID: app.bundleID, deviceID: a.id)?.version == version.version,
+      "Publish the version that was actually installed.")
     let installedDevices = commands.calls.filter { $0.prefix(2) == ["simctl", "install"] }.map {
       $0[2]
     }
@@ -297,6 +302,75 @@ struct AppInstallationTests {
       "Report launch failures without claiming success.")
   }
 
+  static func uninstallJobs() async throws {
+    let commands = InstallationCommands(blocksUninstallation: true)
+    let app = InstallationFixtures.app()
+    let device = InstallationFixtures.device
+    let inventory = InstalledAppsStore(load: { _ in
+      [SimulatorApplication(bundleID: app.bundleID, version: "0.9.0", isUserApplication: true)]
+    })
+    await inventory.refresh(for: device)
+    let store = AppInstallationStore(
+      installer: AppInstaller(command: commands.run), showDevice: { _ in },
+      didUninstall: { inventory.recordUninstallation(bundleID: $0, deviceID: $1) })
+    store.uninstall(app: app, on: device)
+    try InstallationFixtures.require(
+      await Task.detached { commands.waitForStart() }.value, "Wait until uninstall starts.")
+    store.uninstall(app: app, on: device)
+    store.open(app: app, on: device)
+    store.install(app: app, version: app.latestVersion, on: device)
+    store.cancel(appID: app.id, deviceID: device.id)
+    try InstallationFixtures.require(
+      store.phase(appID: app.id, deviceID: device.id) == .uninstalling
+        && commands.calls.count == 2,
+      "Do not cancel, duplicate, install, or open during an in-flight uninstall.")
+    let other = SimulatorDevice(
+      id: "device-B", name: device.name, runtime: device.runtime, state: "Booted")
+    await inventory.refresh(for: other)
+    commands.finish.signal()
+    try await InstallationFixtures.eventually {
+      store.phase(appID: app.id, deviceID: device.id) == nil
+    }
+    try InstallationFixtures.require(
+      store.uninstalledApp == .init(appID: app.id, deviceID: device.id)
+        && commands.calls.last == ["simctl", "uninstall", device.id, app.bundleID],
+      "A successful uninstall reports the original app and device.")
+    try InstallationFixtures.require(
+      inventory.isInstalled(bundleID: app.bundleID, deviceID: other.id) == true,
+      "Switching simulators during uninstall must not remove the other device's app.")
+    await inventory.refresh(for: device)
+    store.uninstall(app: app, on: device)
+    commands.finish.signal()
+    try await InstallationFixtures.eventually {
+      store.phase(appID: app.id, deviceID: device.id) == nil
+    }
+    try InstallationFixtures.require(
+      inventory.bundleIDs == [],
+      "Remove the app from the selected inventory after confirmed success.")
+  }
+
+  static func uninstallFailure() async throws {
+    let commands = InstallationCommands(failsUninstallation: true)
+    let app = InstallationFixtures.app()
+    let device = InstallationFixtures.device
+    var removed = false
+    let store = AppInstallationStore(
+      installer: AppInstaller(command: commands.run), showDevice: { _ in },
+      didUninstall: { _, _ in removed = true })
+    for attempt in 1...2 {
+      store.uninstall(app: app, on: device)
+      try await InstallationFixtures.eventually {
+        store.phase(appID: app.id, deviceID: device.id) == nil
+      }
+      try InstallationFixtures.require(
+        !removed && store.uninstalledApp == nil
+          && store.error(appID: app.id, deviceID: device.id) == "Uninstall failed",
+        "Failed uninstall must retain the app and details, preserve diagnostics, and permit retry.")
+      try InstallationFixtures.require(
+        commands.calls.count == attempt * 2, "Each retry must recheck the target.")
+    }
+  }
+
   static func archiveData(in directory: URL) throws -> Data {
     try Data(
       contentsOf: InstallationFixtures.archive(InstallationFixtures.entries(), in: directory))
@@ -312,15 +386,20 @@ private final class InstallationCommands: @unchecked Sendable {
   private let blocksInstallation: Bool
   private let failsInstallation: Bool
   private let failsLaunch: Bool
+  private let blocksUninstallation: Bool
+  private let failsUninstallation: Bool
 
   init(
     blocksExtraction: Bool = false, blocksInstallation: Bool = false,
-    failsInstallation: Bool = false, failsLaunch: Bool = false
+    failsInstallation: Bool = false, failsLaunch: Bool = false,
+    blocksUninstallation: Bool = false, failsUninstallation: Bool = false
   ) {
     self.blocksExtraction = blocksExtraction
     self.blocksInstallation = blocksInstallation
     self.failsInstallation = failsInstallation
     self.failsLaunch = failsLaunch
+    self.blocksUninstallation = blocksUninstallation
+    self.failsUninstallation = failsUninstallation
   }
 
   var calls: [[String]] { lock.withLock { recorded } }
@@ -346,6 +425,15 @@ private final class InstallationCommands: @unchecked Sendable {
       if failsInstallation { throw InstallationFixtures.failure("Install failed") }
     }
     if arguments[1] == "launch", failsLaunch { throw InstallationFixtures.failure("Launch failed") }
+    if arguments[1] == "listapps" {
+      return Data(
+        "{ \"org.example.App\" = { ApplicationType = User; CFBundleShortVersionString = \"0.9.0\"; }; }"
+          .utf8)
+    }
+    if arguments[1] == "uninstall" {
+      if blocksUninstallation { try block() }
+      if failsUninstallation { throw InstallationFixtures.failure("Uninstall failed") }
+    }
     return Data("org.example.App: 1234\n".utf8)
   }
 

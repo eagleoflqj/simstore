@@ -48,6 +48,10 @@ struct LocalizationTests {
         ("Catalog Unavailable", "Catalog Unavailable", "无法获取应用目录"),
         ("License", "License", "许可证"),
         ("Showing Saved Catalog", "Showing Saved Catalog", "正在显示已缓存的目录"),
+        ("Installed Version", "Installed Version", "已安装版本"),
+        ("Version Unavailable", "Version Unavailable", "版本未知"),
+        ("Uninstall", "Uninstall", "卸载"),
+        ("Uninstalling…", "Uninstalling…", "正在卸载…"),
       ]
       for (key, source, translated) in labels {
         try expect(
@@ -55,6 +59,18 @@ struct LocalizationTests {
       }
 
       let tool = "Device Hub"
+      let appName = "LocalSend"
+      let targetName = "iPhone 测试"
+      try expect(
+        String(localized: "Uninstall \(appName)?", bundle: bundle, locale: locale),
+        english ? "Uninstall LocalSend?" : "卸载 LocalSend？")
+      try expect(
+        String(
+          localized: "\(appName) and its data will be removed from \(targetName).", bundle: bundle,
+          locale: locale),
+        english
+          ? "LocalSend and its data will be removed from iPhone 测试."
+          : "将从 iPhone 测试 中删除 LocalSend 及其数据。")
       try expect(
         String(localized: "Open \(tool)", bundle: bundle, locale: locale),
         english ? "Open Device Hub" : "打开 Device Hub")

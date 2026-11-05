@@ -8,6 +8,7 @@ struct ContentView: View {
   @State private var installedApps: InstalledAppsStore
   @State private var installations: AppInstallationStore
   @State private var launchError: String?
+  @State private var librarySection: LibrarySection = .discover
 
   private static var installedXcodeURL: URL? {
     NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.dt.Xcode")
@@ -28,9 +29,10 @@ struct ContentView: View {
     catalogClient: CatalogClient = .live,
     installer: AppInstaller = AppInstaller(),
     showDevice: (@MainActor (SimulatorDevice) async throws -> Void)? = nil,
-    loadInstalledApps: @escaping @Sendable (SimulatorDevice) async throws -> Set<String> = {
-      try await SimulatorApplications.installedBundleIDs(on: $0)
-    }
+    loadInstalledApps:
+      @escaping @Sendable (SimulatorDevice) async throws -> [SimulatorApplication] = {
+        try await SimulatorApplications.installedApps(on: $0)
+      }
   ) {
     let simulators = SimulatorStore(discover: discover, boot: boot)
     _simulators = State(initialValue: simulators)
@@ -48,8 +50,11 @@ struct ContentView: View {
               deviceID: device.id, manager: simulators.discovery?.deviceManager)
           }
         },
-        didInstall: { bundleID, deviceID in
-          installedApps.recordInstallation(bundleID: bundleID, deviceID: deviceID)
+        didInstall: { application, deviceID in
+          installedApps.recordInstallation(application, deviceID: deviceID)
+        },
+        didUninstall: { bundleID, deviceID in
+          installedApps.recordUninstallation(bundleID: bundleID, deviceID: deviceID)
         },
         didOpen: { bundleID, deviceID in
           installedApps.removeRecentInstallation(bundleID: bundleID, deviceID: deviceID)
@@ -74,6 +79,7 @@ struct ContentView: View {
       GeometryReader { geometry in
         SidebarView(
           discovery: discovery, isChecking: simulators.isChecking, needsXcode: needsXcode,
+          section: $librarySection,
           selectedDeviceID: simulators.selectedDeviceID,
           startingDeviceIDs: simulators.startingDeviceIDs, selectDevice: simulators.selectDevice,
           openRepository: openRepository
@@ -88,7 +94,7 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
           if simulators.selectedDevice == nil || discovery == nil {
-            DiscoverHeading()
+            LibraryHeading(section: librarySection)
               .padding(32)
           }
         }
@@ -166,12 +172,15 @@ struct ContentView: View {
     case .some(.success):
       if let device = simulators.selectedDevice {
         CatalogBrowserView(
+          section: librarySection,
           store: catalog, installedApps: installedApps, installations: installations,
           device: device,
           isStarting: simulators.isStartingSelectedDevice,
           deviceManagerName: deviceManager?.name,
           startSimulator: startSimulator,
-          openDeviceManager: openDeviceManager)
+          openDeviceManager: openDeviceManager
+        )
+        .id(librarySection)
       }
     case .some(.failure) where needsXcode:
       MissingXcodeView(

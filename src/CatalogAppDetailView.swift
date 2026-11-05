@@ -55,6 +55,14 @@ struct CatalogAppDetailView: View {
               Text("Simulator").foregroundStyle(.secondary)
               Text(verbatim: "\(device.name) · \(device.runtimeLabel)")
             }
+            if let application = installedApps.application(
+              bundleID: app.bundleID, deviceID: device.id)
+            {
+              GridRow {
+                Text("Installed Version").foregroundStyle(.secondary)
+                Text(verbatim: application.displayVersion)
+              }
+            }
             GridRow {
               Text("Version").foregroundStyle(.secondary)
               Picker(selection: $versionID) {
@@ -161,6 +169,12 @@ struct CatalogAppDetailView: View {
       Divider()
       HStack {
         Button("Done") { dismiss() }.keyboardShortcut(.cancelAction)
+        if installedApps.isInstalled(bundleID: app.bundleID, deviceID: device.id) == true {
+          AppUninstallButton(
+            app: app, device: device, installedApps: installedApps, installations: installations
+          )
+          .accessibilityIdentifier("detail-uninstall")
+        }
         Spacer()
         AppInstallButton(
           app: app, version: version, device: device, store: installations,

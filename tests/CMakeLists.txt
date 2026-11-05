@@ -31,6 +31,14 @@ target_compile_options(SimStoreCatalogLoadingTest PRIVATE -parse-as-library)
 add_test(NAME catalog-loading COMMAND SimStoreCatalogLoadingTest)
 set_tests_properties(catalog-loading PROPERTIES TIMEOUT 15)
 
+add_executable(SimStoreIconCacheTest IconCacheTests.swift
+    "${PROJECT_SOURCE_DIR}/src/IconCache.swift"
+    "${PROJECT_SOURCE_DIR}/src/AppConfiguration.swift"
+)
+target_compile_options(SimStoreIconCacheTest PRIVATE -parse-as-library)
+add_test(NAME icon-cache COMMAND SimStoreIconCacheTest)
+set_tests_properties(icon-cache PROPERTIES TIMEOUT 20)
+
 add_executable(SimStoreDiscoveryTest SimulatorDiscoveryTests.swift
     "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
     "${PROJECT_SOURCE_DIR}/src/Command.swift"

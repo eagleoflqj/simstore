@@ -35,14 +35,20 @@ extension CatalogVersion {
 struct CatalogIcon: View {
   let app: CatalogApp
   var size: CGFloat = 52
+  @State private var image: CGImage?
+
+  private var key: IconCache.Key {
+    IconCache.Key(
+      url: AppConfiguration.assetURL(
+        appID: app.id, version: app.latestVersion.version, filename: "icon.png"),
+      recipeRevision: app.latestVersion.recipeRevision)
+  }
 
   var body: some View {
-    AsyncImage(
-      url: AppConfiguration.assetURL(
-        appID: app.id, version: app.latestVersion.version, filename: "icon.png")
-    ) { phase in
-      if let image = phase.image {
-        image.resizable().scaledToFit()
+    let key = key
+    Group {
+      if let image {
+        Image(decorative: image, scale: 1).resizable().scaledToFit()
       } else {
         RoundedRectangle(cornerRadius: size * 0.22)
           .fill(Color.accentColor.opacity(0.08))
@@ -56,6 +62,15 @@ struct CatalogIcon: View {
     .frame(width: size, height: size)
     .clipShape(RoundedRectangle(cornerRadius: size * 0.22))
     .accessibilityHidden(true)
+    .task(id: key) {
+      guard !Task.isCancelled else { return }
+      image = nil
+      do {
+        let loaded = try await IconCache.shared.image(for: key)
+        try Task.checkCancellation()
+        image = loaded
+      } catch {}
+    }
   }
 }
 

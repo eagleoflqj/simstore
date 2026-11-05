@@ -10,8 +10,7 @@ struct CatalogClient: Sendable {
 
   static let live = CatalogClient(
     url: AppConfiguration.catalogURL,
-    cacheURL: URL.cachesDirectory.appending(component: AppConfiguration.applicationIdentifier)
-      .appending(component: "index.json")
+    cacheURL: AppConfiguration.cacheDirectory.appending(component: "index.json")
   )
 
   init(

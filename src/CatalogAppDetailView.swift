@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 @MainActor
@@ -7,6 +8,8 @@ struct CatalogAppDetailView: View {
   let installedApps: InstalledAppsStore
   let installations: AppInstallationStore
   @State private var versionID: String
+  @State private var showsBuildDetails = false
+  @State private var collapsedContentHeight: CGFloat = 560
   @Environment(\.dismiss) private var dismiss
 
   init(
@@ -24,6 +27,13 @@ struct CatalogAppDetailView: View {
 
   private var version: CatalogVersion {
     app.versions.first(where: { $0.version == versionID }) ?? app.recommendedVersion(for: runtime)
+  }
+
+  private var contentHeight: CGFloat {
+    let screen = NSApp.keyWindow?.screen ?? NSApp.mainWindow?.screen ?? NSScreen.main
+    // Reserve space for the footer, window chrome, and screen edges.
+    let available = (screen?.visibleFrame.height ?? 900) - 160
+    return min(collapsedContentHeight.rounded(.up), available)
   }
 
   var body: some View {
@@ -113,7 +123,7 @@ struct CatalogAppDetailView: View {
             }
           }
 
-          DisclosureGroup("Build Details") {
+          DisclosureGroup("Build Details", isExpanded: $showsBuildDetails) {
             VStack(alignment: .leading, spacing: 12) {
               buildDetail(
                 "Source Revision", value: version.revision,
@@ -138,6 +148,15 @@ struct CatalogAppDetailView: View {
           .fixedSize(horizontal: false, vertical: true)
         }
         .padding(28)
+        .background {
+          GeometryReader { geometry in
+            Color.clear.preference(key: DetailContentHeight.self, value: geometry.size.height)
+          }
+        }
+      }
+      .frame(height: contentHeight)
+      .onPreferenceChange(DetailContentHeight.self) { height in
+        if !showsBuildDetails && height > 0 { collapsedContentHeight = height }
       }
       Divider()
       HStack {
@@ -146,15 +165,13 @@ struct CatalogAppDetailView: View {
         AppInstallButton(
           app: app, version: version, device: device, store: installations,
           isInstalled: installedApps.isInstalled(bundleID: app.bundleID, deviceID: device.id),
-          allowsIncompatible: true
+          allowsIncompatible: true, isDefaultAction: true
         )
-        .buttonStyle(.borderedProminent)
-        .keyboardShortcut(.defaultAction)
         .accessibilityIdentifier("detail-install")
       }
       .padding(20)
     }
-    .frame(width: 580, height: 560)
+    .frame(width: 580)
   }
 
   private func buildDetail(_ title: LocalizedStringKey, value: String, link: URL? = nil)
@@ -172,6 +189,14 @@ struct CatalogAppDetailView: View {
       .font(.system(size: 10, design: .monospaced))
       .fixedSize(horizontal: false, vertical: true)
     }
+  }
+}
+
+private struct DetailContentHeight: PreferenceKey {
+  static let defaultValue: CGFloat = 0
+
+  static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+    value = max(value, nextValue())
   }
 }
 

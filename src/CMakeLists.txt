@@ -5,6 +5,7 @@ add_executable(SimStore MACOSX_BUNDLE
     SimStoreApp.swift
     SimulatorDiscovery.swift
     SimulatorControl.swift
+    SimulatorPresenter.swift
     SimulatorApplications.swift
     InstalledAppsStore.swift
     InstalledAppsStatusView.swift
@@ -19,6 +20,7 @@ add_executable(SimStore MACOSX_BUNDLE
     AppInstaller.swift
     AppInstallationStore.swift
     AppInstallButton.swift
+    DownloadProgressView.swift
     CatalogClient.swift
     CatalogStore.swift
     CatalogPresentation.swift

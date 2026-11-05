@@ -23,7 +23,7 @@ struct CatalogBrowserView: View {
 
   private var availableApps: [CatalogApp]? {
     guard device.state == "Booted", let catalog = store.catalog else { return nil }
-    return installedApps.uninstalledApps(in: catalog, for: device.id)
+    return installedApps.discoverableApps(in: catalog, for: device.id)
   }
 
   private var apps: [CatalogApp] {
@@ -81,6 +81,11 @@ struct CatalogBrowserView: View {
     .padding(.top, 28)
     .task { await store.refresh() }
     .task(id: device) { await installedApps.refresh(for: device) }
+    .onChange(of: installations.openedApp) { _, opened in
+      if let opened, opened.deviceID == device.id, selectedApp?.id == opened.appID {
+        selectedApp = nil
+      }
+    }
     .onChange(of: categories) { _, values in
       guard availableApps != nil else { return }
       if !category.isEmpty && !values.contains(category) { category = "" }
@@ -227,6 +232,7 @@ struct CatalogBrowserView: View {
   private func refreshInstalledApps() { Task { await installedApps.refresh(for: device) } }
 
   private func refresh() {
+    installedApps.clearRecentInstallations()
     Task { await store.refresh() }
     refreshInstalledApps()
   }

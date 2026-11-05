@@ -61,7 +61,6 @@ struct CatalogAppCard: View {
           app: app, version: version, device: device, store: installations,
           isInstalled: installedApps.isInstalled(bundleID: app.bundleID, deviceID: device.id)
         )
-        .buttonStyle(.bordered)
         .controlSize(.small)
         .accessibilityIdentifier("catalog-install-\(app.id)")
       }

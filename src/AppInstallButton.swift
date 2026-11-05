@@ -7,6 +7,7 @@ struct AppInstallButton: View {
   let store: AppInstallationStore
   let isInstalled: Bool?
   var allowsIncompatible = false
+  var isDefaultAction = false
 
   private enum Action: CaseIterable {
     case install, open, cancel, installing, canceling, opening
@@ -44,6 +45,14 @@ struct AppInstallButton: View {
   }
 
   var body: some View {
+    if phase == nil {
+      button.buttonStyle(.borderedProminent)
+    } else {
+      button.buttonStyle(.bordered)
+    }
+  }
+
+  private var button: some View {
     Button {
       switch action {
       case .install: store.install(app: app, version: version, on: device)
@@ -58,6 +67,7 @@ struct AppInstallButton: View {
       .lineLimit(1)
     }
     .disabled(!enabled)
+    .keyboardShortcut(isDefaultAction && phase == nil ? .defaultAction : nil)
     .accessibilityLabel(Text(verbatim: "\(action.title) \(app.name)"))
     .accessibilityValue(Text(verbatim: phase?.summary(totalBytes: version.size) ?? ""))
     .help(Text(verbatim: version.minimumOSLabel))
@@ -74,14 +84,7 @@ struct AppInstallStatusView: View {
     VStack(alignment: .leading, spacing: 10) {
       if let phase = store.phase(appID: appID, deviceID: deviceID) {
         if case .downloading(let bytes) = phase {
-          ProgressView(value: Double(min(bytes, version.size)), total: Double(version.size)) {
-            Text(verbatim: phase.title)
-          }
-          Text(
-            verbatim:
-              "\(ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)) / \(ByteCountFormatter.string(fromByteCount: version.size, countStyle: .file))"
-          )
-          .font(.system(size: 11)).monospacedDigit().foregroundStyle(.secondary)
+          DownloadProgressView(receivedBytes: bytes, totalBytes: version.size, title: phase.title)
         } else {
           HStack(spacing: 10) {
             ProgressView().controlSize(.small)

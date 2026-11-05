@@ -8,6 +8,7 @@ final class InstalledAppsStore {
   private(set) var bundleIDs: Set<String>?
   private(set) var isLoading = false
   private(set) var error: String?
+  private var recentInstallations: Set<String> = []
 
   @ObservationIgnored
   private let load: @Sendable (SimulatorDevice) async throws -> Set<String>
@@ -26,15 +27,26 @@ final class InstalledAppsStore {
     self.load = load
   }
 
-  func uninstalledApps(in catalog: AppCatalog, for deviceID: String) -> [CatalogApp]? {
+  func discoverableApps(in catalog: AppCatalog, for deviceID: String) -> [CatalogApp]? {
     guard self.deviceID == deviceID, let bundleIDs else { return nil }
     let installed = Set(bundleIDs.map { $0.lowercased() })
-    return catalog.apps.filter { !installed.contains($0.bundleID.lowercased()) }
+    return catalog.apps.filter {
+      !installed.contains($0.bundleID.lowercased())
+        || recentInstallations.contains($0.bundleID.lowercased())
+    }
+  }
+
+  func clearRecentInstallations() { recentInstallations = [] }
+
+  func removeRecentInstallation(bundleID: String, deviceID: String) {
+    guard self.deviceID == deviceID else { return }
+    recentInstallations.remove(bundleID.lowercased())
   }
 
   func recordInstallation(bundleID: String, deviceID: String) {
     guard self.deviceID == deviceID else { return }
     installedDuringRefresh.insert(bundleID)
+    recentInstallations.insert(bundleID.lowercased())
     bundleIDs?.insert(bundleID)
   }
 
@@ -53,6 +65,7 @@ final class InstalledAppsStore {
       return
     }
     let pending = Request(device: device)
+    if selectedDevice?.id != device.id { clearRecentInstallations() }
     request = pending
     selectedDevice = device
     deviceID = device.id

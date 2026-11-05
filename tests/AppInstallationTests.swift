@@ -10,6 +10,7 @@ struct AppInstallationTests {
       try await pipeline()
       try await failureAndCleanup()
       try await perDeviceJobs()
+      try await presentationFailures()
       try await cancellationDuringPreparation()
       try await installingCannotBeCanceled()
       try await stoppedDevice()
@@ -108,11 +109,20 @@ struct AppInstallationTests {
     let commands = InstallationCommands()
     let inventory = InstalledAppsStore(load: { _ in [] })
     await inventory.refresh(for: InstallationFixtures.device)
+    var shownDevices: [SimulatorDevice] = []
+    var openedDevices: [String] = []
     let store = AppInstallationStore(
       installer: AppInstaller(
         download: { try await gate.download($0, $1, $2) }, command: commands.run,
         temporaryDirectory: directory.appending(component: "work")),
-      didInstall: { inventory.recordInstallation(bundleID: $0, deviceID: $1) })
+      showDevice: { device in
+        try InstallationFixtures.require(
+          commands.calls.last == ["simctl", "launch", device.id, "org.example.App"],
+          "Present the target device only after its app has launched.")
+        shownDevices.append(device)
+      },
+      didInstall: { inventory.recordInstallation(bundleID: $0, deviceID: $1) },
+      didOpen: { _, deviceID in openedDevices.append(deviceID) })
     let version = InstallationFixtures.version(data: data)
     let app = InstallationFixtures.app(version: version)
     let a = InstallationFixtures.device
@@ -166,6 +176,39 @@ struct AppInstallationTests {
     try InstallationFixtures.require(
       commands.calls.last == ["simctl", "launch", b.id, app.bundleID],
       "Launch on the requested device.")
+    try InstallationFixtures.require(shownDevices == [b], "Present the original launch target.")
+    try InstallationFixtures.require(
+      openedDevices == [b.id] && store.openedApp == .init(appID: app.id, deviceID: b.id),
+      "Publish a successful open only after presenting its target.")
+  }
+
+  static func presentationFailures() async throws {
+    for launchFails in [true, false] {
+      let commands = InstallationCommands(failsLaunch: launchFails)
+      var didShow = false
+      var didOpen = false
+      let store = AppInstallationStore(
+        installer: AppInstaller(command: commands.run),
+        showDevice: { _ in
+          didShow = true
+          throw InstallationFixtures.failure("Presentation failed")
+        }, didOpen: { _, _ in didOpen = true })
+      let app = InstallationFixtures.app()
+      let device = InstallationFixtures.device
+      store.open(app: app, on: device)
+      try await InstallationFixtures.eventually {
+        store.phase(appID: app.id, deviceID: device.id) == nil
+      }
+      try InstallationFixtures.require(
+        didShow != launchFails, "Do not change apps after a failed launch.")
+      try InstallationFixtures.require(
+        !didOpen && store.openedApp == nil,
+        "A failed launch or presentation must preserve the card and details for retry.")
+      try InstallationFixtures.require(
+        store.error(appID: app.id, deviceID: device.id)
+          == (launchFails ? "Launch failed" : "Presentation failed"),
+        "Preserve launch and presentation failures and permit retry.")
+    }
   }
 
   static func cancellationDuringPreparation() async throws {
@@ -178,7 +221,7 @@ struct AppInstallationTests {
       installer: AppInstaller(
         download: { _, destination, _ in
           try data.write(to: destination)
-        }, command: commands.run, temporaryDirectory: work))
+        }, command: commands.run, temporaryDirectory: work), showDevice: { _ in })
     let app = InstallationFixtures.app()
     let device = InstallationFixtures.device
     store.install(app: app, version: InstallationFixtures.version(data: data), on: device)
@@ -209,6 +252,7 @@ struct AppInstallationTests {
         download: { _, destination, _ in
           try data.write(to: destination)
         }, command: commands.run, temporaryDirectory: directory.appending(component: "work")),
+      showDevice: { _ in },
       didInstall: { _, _ in installed = true })
     let app = InstallationFixtures.app()
     let device = InstallationFixtures.device
@@ -234,7 +278,7 @@ struct AppInstallationTests {
     let store = AppInstallationStore(
       installer: AppInstaller(
         download: { _, _, _ in throw InstallationFixtures.failure("Unexpected download") },
-        command: commands.run))
+        command: commands.run), showDevice: { _ in })
     let app = InstallationFixtures.app()
     store.install(app: app, version: app.latestVersion, on: stopped)
     try await InstallationFixtures.eventually {
@@ -267,14 +311,16 @@ private final class InstallationCommands: @unchecked Sendable {
   private let blocksExtraction: Bool
   private let blocksInstallation: Bool
   private let failsInstallation: Bool
+  private let failsLaunch: Bool
 
   init(
     blocksExtraction: Bool = false, blocksInstallation: Bool = false,
-    failsInstallation: Bool = false
+    failsInstallation: Bool = false, failsLaunch: Bool = false
   ) {
     self.blocksExtraction = blocksExtraction
     self.blocksInstallation = blocksInstallation
     self.failsInstallation = failsInstallation
+    self.failsLaunch = failsLaunch
   }
 
   var calls: [[String]] { lock.withLock { recorded } }
@@ -299,6 +345,7 @@ private final class InstallationCommands: @unchecked Sendable {
       if blocksInstallation { try block() }
       if failsInstallation { throw InstallationFixtures.failure("Install failed") }
     }
+    if arguments[1] == "launch", failsLaunch { throw InstallationFixtures.failure("Launch failed") }
     return Data("org.example.App: 1234\n".utf8)
   }
 

@@ -9,6 +9,7 @@ struct SimulatorControlTests {
       try await commandFailure()
       try await cancelledBeforeBoot()
       try await cancelledDuringBoot()
+      try presentationRequests()
       print("PASS: simulator boot command, background execution, command errors, and cancellation.")
     } catch {
       FileHandle.standardError.write(
@@ -86,6 +87,37 @@ struct SimulatorControlTests {
 
   static func waitForCommand(_ semaphore: DispatchSemaphore) -> Bool {
     semaphore.wait(timeout: .now() + 5) == .success
+  }
+
+  static func presentationRequests() throws {
+    let managerURL = URL(
+      fileURLWithPath: "/Applications/Selected Xcode.app/Contents/Applications/DeviceHub.app")
+    let deviceID = "target & other=invalid"
+    let hub = try SimulatorPresenter.request(
+      deviceID: deviceID, manager: ("Device Hub", managerURL))
+    try require(
+      hub.applicationURL == managerURL && hub.arguments.isEmpty && hub.urls.count == 1,
+      "Open Device Hub from the selected Xcode.")
+    let url = URLComponents(url: hub.urls[0], resolvingAgainstBaseURL: false)!
+    try require(
+      url.scheme == "devices" && url.host == "device" && url.path == "/open",
+      "Use the device-opening route.")
+    try require(
+      url.queryItems == [URLQueryItem(name: "id", value: deviceID)],
+      "Encode the exact target as one query parameter.")
+    let simulatorURL = URL(
+      fileURLWithPath:
+        "/Applications/Selected Xcode.app/Contents/Developer/Applications/Simulator.app")
+    let legacy = try SimulatorPresenter.request(
+      deviceID: deviceID, manager: ("Simulator", simulatorURL))
+    try require(
+      legacy.applicationURL == simulatorURL && legacy.urls.isEmpty
+        && legacy.arguments == ["-CurrentDeviceUDID", deviceID],
+      "Pass the target device to legacy Simulator without shell expansion.")
+    do {
+      _ = try SimulatorPresenter.request(deviceID: deviceID, manager: nil)
+    } catch { return }
+    throw failure("A missing simulator application must be reported.")
   }
 
   static func require(_ condition: Bool, _ message: String) throws {

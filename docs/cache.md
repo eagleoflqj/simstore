@@ -31,3 +31,11 @@ Corrupt disk images are removed and fetched again. Failed requests and invalid r
 App archives are streamed to a separate, randomly named directory under `URL.temporaryDirectory` for each installation. The download session has its HTTP cache disabled, a 60-second inactivity timeout, and a one-hour resource timeout. Archives are not retained or shared as a persistent download cache; retrying an installation starts a new download.
 
 The archive's size and SHA-256 must match the selected catalog version before extraction. The temporary archive and extracted app are removed when the operation succeeds, fails, or finishes canceling. Cancellation during preparation waits for any running archive command to finish before cleanup; once `simctl install` starts, it is allowed to finish. A process exit can leave temporary files for the operating system to reclaim.
+
+## SimStore updates
+
+The client's own `version.json` feed is fetched on each explicit update check with the local HTTP cache bypassed and `Cache-Control: no-cache`. It has no disk cache, ETag storage, expiry timer, or offline fallback. The most recent result and selected release are kept in memory for the current application session. Before downloading a nightly, SimStore checks the current feed again and asks for another update check if the offered build has changed.
+
+Self-update archives use the same uncached download session as Simulator app installations. They are streamed to a private, randomly named `.simstore-update-*` directory beside the installed SimStore app, rather than a persistent download cache, so an atomic replacement can stay on one filesystem. The verified archive is deleted after preparation. The extracted bundle, copied assistant, and previous version remain only until the update succeeds or finishes failing/canceling. An interrupted process can leave a staging directory for manual cleanup.
+
+If the update assistant encounters an error, it writes a translated message to `update-error.json` in the client's cache directory. The running or relaunched client consumes and removes that message when reporting the failure. This file is a one-time failure report, not a version or package cache; losing it does not affect the installed application.

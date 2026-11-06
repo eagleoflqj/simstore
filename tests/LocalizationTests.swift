@@ -52,6 +52,11 @@ struct LocalizationTests {
         ("Version Unavailable", "Version Unavailable", "版本未知"),
         ("Uninstall", "Uninstall", "卸载"),
         ("Uninstalling…", "Uninstalling…", "正在卸载…"),
+        ("About SimStore", "About SimStore", "关于 SimStore"),
+        ("Check for Updates…", "Check for Updates…", "检查更新…"),
+        ("Update and Restart", "Update and Restart", "更新并重新启动"),
+        ("Install Nightly and Restart", "Install Nightly and Restart", "安装每夜构建并重新启动"),
+        ("SimStore Is Up to Date", "SimStore Is Up to Date", "SimStore 已是最新版本"),
       ]
       for (key, source, translated) in labels {
         try expect(

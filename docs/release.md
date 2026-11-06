@@ -60,3 +60,15 @@ python3 scripts/release.py index --repo iSimStore/simstore
 ```
 
 This writes `build/version.json`. Add `--upload` to publish the file to the `latest` release. Python 3.9 or newer and an authenticated GitHub CLI are required for release administration; building requires Python but does not access GitHub.
+
+## In-app updates
+
+Use SimStore → Check for Updates… or the check button in About SimStore. About shows the bundle version, commit count, source commit link, and commit date. Checks run on request and fetch `version.json` without using the local HTTP cache; they do not download or install an update automatically.
+
+The client chooses the highest stable version whose minimum macOS requirement is met. If that version is newer than the installed `(version, build)` pair, it is offered before any nightly. Once no compatible stable upgrade remains, a newer compatible nightly can be installed explicitly. Nightlies are labeled unstable and use a separate Install Nightly and Restart action. A newer base version outranks a larger commit count on an older base, and older builds are never offered as upgrades. A Mac that cannot run newer releases can continue checking against its last compatible stable version.
+
+Updating streams the fixed release archive into a private staging directory beside the current app, so replacement stays on the same filesystem. The client checks the archive size and SHA-256 before extraction, then verifies the bundle identifier, version, commit count, revision, commit time, clean-source flag, minimum macOS version, executable permissions, symlink boundaries, and arm64 macOS Mach-O load commands. Both the main executable and the bundled update assistant must be present and compatible. If the selected nightly has changed before download, the client requests another check; an archive that changes during download fails its checksum rather than being installed.
+
+The current app's native update assistant is copied outside the bundle and started before SimStore quits. After validating its request, it signals readiness and waits up to 30 seconds for that specific process to exit. It then atomically exchanges the staged and installed bundles with `renameatx_np(RENAME_SWAP)`, launches the new app at the original path, and keeps the previous bundle until the new process has remained alive for three seconds. A launch failure exchanges the bundles back and relaunches the previous version. An unrecoverable rollback retains the previous bundle and reports its location. The installation directory must be writable by the current user; no administrator prompt or signing identity is required.
+
+Downloads and preparation can be canceled while keeping the installed app intact. Cancellation stops being available when the assistant takes over. Temporary data is removed after success, failure, or completed cancellation; an interrupted process can leave a hidden staging directory beside the app. Update failures after quitting are reported when the previous app reopens.

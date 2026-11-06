@@ -257,6 +257,22 @@
         }
       }
     },
+    "Build Manifest": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build Manifest"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "构建清单"
+          }
+        }
+      }
+    },
     "Build Release": {
       "localizations": {
         "en": {
@@ -477,6 +493,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "通信"
+          }
+        }
+      }
+    },
+    "Copy Bundle ID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Bundle ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制包标识符"
+          }
+        }
+      }
+    },
+    "Copy SHA-256": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy SHA-256"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制 SHA-256"
           }
         }
       }

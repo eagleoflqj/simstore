@@ -150,3 +150,14 @@ add_test(NAME bundle-metadata COMMAND "${CMAKE_COMMAND}"
     "-DEXPECTED_MIN_OS=${CMAKE_OSX_DEPLOYMENT_TARGET}"
     -P "${CMAKE_CURRENT_SOURCE_DIR}/BundleMetadataTest.cmake"
 )
+
+add_test(NAME bundle-version COMMAND "${Python3_EXECUTABLE}"
+    "${PROJECT_SOURCE_DIR}/scripts/version.py" check --source "${PROJECT_SOURCE_DIR}"
+    --plist "$<TARGET_BUNDLE_DIR:SimStore>/Contents/Info.plist"
+)
+set_tests_properties(bundle-version PROPERTIES TIMEOUT 10)
+
+add_test(NAME release-workflow COMMAND "${Python3_EXECUTABLE}" -m unittest discover
+    -s "${CMAKE_CURRENT_SOURCE_DIR}" -p "test_*.py"
+)
+set_tests_properties(release-workflow PROPERTIES TIMEOUT 60)

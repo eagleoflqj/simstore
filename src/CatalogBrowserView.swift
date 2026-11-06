@@ -18,8 +18,8 @@ struct CatalogBrowserView: View {
   @State private var showsSimulator = false
   @FocusState private var focusedAppID: String?
 
-  private var categories: [String] {
-    Array(Set(availableApps?.flatMap(\.categories) ?? [])).sorted()
+  private var categories: [String]? {
+    availableApps.map { Array(Set($0.flatMap(\.categories))).sorted() }
   }
 
   private var availableApps: [CatalogApp]? {
@@ -27,6 +27,7 @@ struct CatalogBrowserView: View {
     switch section {
     case .discover: return installedApps.discoverableApps(in: catalog, for: device.id)
     case .installed: return installedApps.installedApps(in: catalog, for: device.id)
+    case .updates: return installedApps.updatableApps(in: catalog, for: device)
     }
   }
 
@@ -92,7 +93,7 @@ struct CatalogBrowserView: View {
       dismissDetails(matching: uninstalled)
     }
     .onChange(of: categories) { _, values in
-      guard availableApps != nil else { return }
+      guard let values else { return }
       if !category.isEmpty && !values.contains(category) { category = "" }
     }
     .sheet(item: $selectedApp) { app in
@@ -158,7 +159,7 @@ struct CatalogBrowserView: View {
       HStack(spacing: 12) {
         Picker("Category", selection: $category) {
           Text("All Apps").tag("")
-          ForEach(categories, id: \.self) { value in
+          ForEach(categories ?? [], id: \.self) { value in
             Text(verbatim: CatalogCategory.title(value)).tag(value)
           }
         }
@@ -184,9 +185,24 @@ struct CatalogBrowserView: View {
           Text("Apps you install from this catalog will appear here.")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+      } else if availableApps.isEmpty && section == .updates {
+        ContentUnavailableView {
+          Label {
+            Text("All Apps Are Up to Date")
+          } icon: {
+            Image(systemName: "checkmark.circle").foregroundStyle(.green)
+          }
+        } description: {
+          Text("Newer compatible versions of your installed apps will appear here.")
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
       } else if availableApps.isEmpty {
         ContentUnavailableView {
-          Label("All Apps Are Installed", systemImage: "checkmark.circle")
+          Label {
+            Text("All Apps Are Installed")
+          } icon: {
+            Image(systemName: "checkmark.circle").foregroundStyle(.green)
+          }
         } description: {
           Text("Every app in the catalog is already installed on this simulator.")
         }
@@ -216,7 +232,7 @@ struct CatalogBrowserView: View {
                     let app = visibleApps[index]
                     CatalogAppCard(
                       app: app, device: device, installedApps: installedApps,
-                      installations: installations, showsInstallation: section == .installed,
+                      installations: installations, section: section,
                       focusedAppID: $focusedAppID,
                       showDetails: { selectedApp = app }
                     )

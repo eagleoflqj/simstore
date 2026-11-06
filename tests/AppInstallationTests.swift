@@ -16,6 +16,9 @@ struct AppInstallationTests {
       try await stoppedDevice()
       try await uninstallJobs()
       try await uninstallFailure()
+      try versionActions()
+      try await replacementPipeline()
+      try await replacementWhileSwitchingDevices()
       print(
         "PASS: package verification, safe extraction, Simulator binaries, install/open, per-device jobs, cancellation, failures, and cleanup."
       )
@@ -369,6 +372,113 @@ struct AppInstallationTests {
       try InstallationFixtures.require(
         commands.calls.count == attempt * 2, "Each retry must recheck the target.")
     }
+  }
+
+  static func versionActions() throws {
+    let version = InstallationFixtures.version()
+    let cases: [(String?, AppInstallationAction)] = [
+      ("0.9.0", .update), ("1.0", .open), ("2.0.0", .downgrade), (nil, .replace),
+      ("1.0-beta", .replace),
+    ]
+    for (installedVersion, expected) in cases {
+      let installed = SimulatorApplication(
+        bundleID: "org.example.App", version: installedVersion, isUserApplication: true)
+      try InstallationFixtures.require(
+        AppInstallationAction.forVersion(version, installed: installed, allowsChanges: true)
+          == expected,
+        "Choose an action that accurately describes replacing the installed version.")
+      try InstallationFixtures.require(
+        AppInstallationAction.forVersion(version, installed: installed, allowsChanges: false)
+          == .open,
+        "Installed cards keep Open rather than silently replacing an app.")
+    }
+    let system = SimulatorApplication(
+      bundleID: "com.apple.Example", version: "0.9.0", isUserApplication: false)
+    try InstallationFixtures.require(
+      AppInstallationAction.forVersion(version, installed: system, allowsChanges: true) == .open,
+      "Do not offer version replacement for system applications.")
+  }
+
+  static func replacementPipeline() async throws {
+    let directory = try InstallationFixtures.temporaryDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let data = try archiveData(in: directory)
+    let app = InstallationFixtures.app(version: InstallationFixtures.version(data: data))
+    let device = InstallationFixtures.device
+    for fails in [false, true] {
+      let commands = InstallationCommands(failsInstallation: fails)
+      let inventory = InstalledAppsStore(load: { _ in
+        [SimulatorApplication(bundleID: app.bundleID, version: "0.9.0", isUserApplication: true)]
+      })
+      await inventory.refresh(for: device)
+      var freshInstall = false
+      let store = AppInstallationStore(
+        installer: AppInstaller(
+          download: { _, destination, _ in try data.write(to: destination) }, command: commands.run,
+          temporaryDirectory: directory.appending(component: "work")),
+        showDevice: { _ in }, didInstall: { _, _ in freshInstall = true },
+        didReplace: { inventory.recordReplacement($0, deviceID: $1) })
+      store.replace(app: app, version: app.latestVersion, on: device)
+      try await InstallationFixtures.eventually {
+        store.phase(appID: app.id, deviceID: device.id) == nil
+      }
+      let simulatorCommands = commands.calls.filter { $0.first == "simctl" }
+      try InstallationFixtures.require(
+        simulatorCommands.count == 1
+          && simulatorCommands[0].prefix(3) == ["simctl", "install", device.id],
+        "Replace through simctl install without an uninstall or erase step.")
+      try InstallationFixtures.require(
+        !freshInstall, "Replacement must not be recorded as a new Discover installation.")
+      try InstallationFixtures.require(
+        inventory.application(bundleID: app.bundleID, deviceID: device.id)?.version
+          == (fails ? "0.9.0" : "1.0.0"),
+        "Only a successful replacement may change the installed version.")
+      try InstallationFixtures.require(
+        (store.error(appID: app.id, deviceID: device.id) != nil) == fails,
+        "Report failed replacements and retain the old installed version for retry.")
+    }
+  }
+
+  static func replacementWhileSwitchingDevices() async throws {
+    let directory = try InstallationFixtures.temporaryDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let data = try archiveData(in: directory)
+    let version = InstallationFixtures.version(data: data)
+    let app = InstallationFixtures.app(version: version)
+    let a = InstallationFixtures.device
+    let b = SimulatorDevice(id: "device-B", name: a.name, runtime: a.runtime, state: a.state)
+    let gate = InstallationDownloadGate(data: data)
+    let commands = InstallationCommands()
+    let inventory = InstalledAppsStore(load: { _ in
+      [SimulatorApplication(bundleID: app.bundleID, version: "0.9.0", isUserApplication: true)]
+    })
+    await inventory.refresh(for: a)
+    var completedDevices: [String] = []
+    let store = AppInstallationStore(
+      installer: AppInstaller(
+        download: { try await gate.download($0, $1, $2) }, command: commands.run,
+        temporaryDirectory: directory.appending(component: "work")), showDevice: { _ in },
+      didReplace: { application, deviceID in
+        completedDevices.append(deviceID)
+        inventory.recordReplacement(application, deviceID: deviceID)
+      })
+    store.replace(app: app, version: version, on: a)
+    try await gate.waitForCount(1)
+    await inventory.refresh(for: b)
+    store.replace(app: app, version: version, on: a)
+    store.install(app: app, version: version, on: a)
+    store.uninstall(app: app, on: a)
+    try InstallationFixtures.require(
+      await gate.count == 1, "Replacement shares the existing per-app/device job lock.")
+    await gate.finish(0)
+    try await InstallationFixtures.eventually { store.phase(appID: app.id, deviceID: a.id) == nil }
+    try InstallationFixtures.require(
+      completedDevices == [a.id] && commands.calls.last?.prefix(3) == ["simctl", "install", a.id],
+      "A background update must complete on its captured device.")
+    try InstallationFixtures.require(
+      inventory.deviceID == b.id
+        && inventory.application(bundleID: app.bundleID, deviceID: b.id)?.version == "0.9.0",
+      "A completed update on the previous device cannot replace the selected device's version.")
   }
 
   static func archiveData(in directory: URL) throws -> Data {

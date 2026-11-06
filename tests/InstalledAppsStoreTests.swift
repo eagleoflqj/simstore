@@ -14,6 +14,7 @@ struct InstalledAppsStoreTests {
       try await retainInstalledAppsForCurrentVisit()
       try await installedVersionsAndMatching()
       try await recordingUninstallationDuringRefresh()
+      try await updateFilteringAndRetention()
       print(
         "PASS: per-device installed apps, filtering, stale responses, errors, and cancellation.")
     } catch {
@@ -321,6 +322,75 @@ struct InstalledAppsStoreTests {
     try require(
       store.application(bundleID: "io.example.Installed", deviceID: "A")?.version == "1.2.0",
       "The latest completed mutation wins when an app is reinstalled during a refresh.")
+  }
+
+  static func updateFilteringAndRetention() async throws {
+    let current = catalog()
+    let store = InstalledAppsStore(load: { device in
+      [
+        application("IO.EXAMPLE.INSTALLED", version: device.id == "A" ? "0.8.0" : "2.0.0"),
+        application("io.example.Available", version: nil),
+        SimulatorApplication(
+          bundleID: "io.example.Unknown", version: "0.8.0", isUserApplication: false),
+      ]
+    })
+    try require(
+      store.updatableApps(in: current, for: device("A")) == nil,
+      "Unknown inventories must not claim no updates.")
+    await store.refresh(for: device("A"))
+    try require(
+      store.updatableApps(in: current, for: device("A"))?.map(\.id) == ["installed"],
+      "Offer updates only for matching user apps with comparable older versions.")
+    try require(
+      store.updatableApps(in: current, for: device("A"), includingRecent: false)?.count == 1,
+      "The sidebar count includes pending compatible updates.")
+    try require(
+      store.updatableApps(in: current, for: device("B")) == nil
+        && store.updatableApps(in: current, for: device("A", state: "Shutdown")) == nil,
+      "Updates belong to a known running device.")
+    store.recordReplacement(application("io.example.INSTALLED", version: "1.0.0"), deviceID: "A")
+    try require(
+      store.updatableApps(in: current, for: device("A"))?.map(\.id) == ["installed"],
+      "Retain a completed update for Open in the current visit.")
+    try require(
+      store.updatableApps(in: current, for: device("A"), includingRecent: false)?.isEmpty == true,
+      "A completed update retained for Open must not inflate the sidebar count.")
+    try require(
+      store.discoverableApps(in: current, for: "A")?.isEmpty == true,
+      "Updating an existing app must not expose it as newly installed in Discover.")
+    store.removeRecentInstallation(bundleID: "io.example.installed", deviceID: "B")
+    try require(
+      store.updatableApps(in: current, for: device("A"))?.count == 1,
+      "Another device's Open must not remove this card.")
+    store.removeRecentInstallation(bundleID: "io.example.installed", deviceID: "A")
+    try require(
+      store.updatableApps(in: current, for: device("A"))?.isEmpty == true,
+      "A successful Open removes a completed update.")
+    store.recordReplacement(application("io.example.Installed", version: "1.0.0"), deviceID: "A")
+    store.clearRecentInstallations()
+    try require(
+      store.updatableApps(in: current, for: device("A"))?.isEmpty == true,
+      "Explicit refresh or navigation ends retained updates.")
+    store.recordReplacement(application("io.example.Installed", version: "2.0.0"), deviceID: "A")
+    try require(
+      store.updatableApps(in: current, for: device("A"))?.isEmpty == true,
+      "A newer installed version must not create a downgrade card.")
+    await store.refresh(for: device("B"))
+    try require(
+      store.updatableApps(in: current, for: device("B"))?.isEmpty == true,
+      "A device with a newer app has no update.")
+
+    let probe = InventoryProbe()
+    let pendingStore = InstalledAppsStore(load: { try await probe.load($0) })
+    let pending = Task { await pendingStore.refresh(for: device("A")) }
+    try await eventually { await probe.calls.count == 1 }
+    pendingStore.recordReplacement(
+      application("io.example.Installed", version: "1.0.0"), deviceID: "A")
+    await probe.finish(0, with: .success(["io.example.Installed"]))
+    await pending.value
+    try require(
+      pendingStore.application(bundleID: "io.example.Installed", deviceID: "A")?.version == "1.0.0",
+      "An older query cannot roll back the version from a completed update.")
   }
 
   static func eventually(_ condition: () async -> Bool) async throws {

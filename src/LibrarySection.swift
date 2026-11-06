@@ -1,12 +1,13 @@
 import SwiftUI
 
 enum LibrarySection: String, CaseIterable {
-  case discover, installed
+  case discover, installed, updates
 
   var title: String {
     switch self {
     case .discover: String(localized: "Discover")
     case .installed: String(localized: "Installed")
+    case .updates: String(localized: "Updates")
     }
   }
 
@@ -14,6 +15,7 @@ enum LibrarySection: String, CaseIterable {
     switch self {
     case .discover: String(localized: "Open-source favorites. Built for your simulator.")
     case .installed: String(localized: "Apps from the catalog on this simulator.")
+    case .updates: String(localized: "Newer versions for your simulator.")
     }
   }
 
@@ -21,6 +23,7 @@ enum LibrarySection: String, CaseIterable {
     switch self {
     case .discover: "safari"
     case .installed: "square.grid.2x2"
+    case .updates: "arrow.triangle.2.circlepath"
     }
   }
 }

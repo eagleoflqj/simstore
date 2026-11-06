@@ -5,11 +5,12 @@ struct CatalogAppCard: View {
   let device: SimulatorDevice
   let installedApps: InstalledAppsStore
   let installations: AppInstallationStore
-  let showsInstallation: Bool
+  let section: LibrarySection
   @FocusState.Binding var focusedAppID: String?
   let showDetails: () -> Void
 
   private var runtime: String { device.runtime }
+  private var showsInstallation: Bool { section != .discover }
 
   var body: some View {
     let version = app.recommendedVersion(for: runtime)
@@ -35,35 +36,16 @@ struct CatalogAppCard: View {
       .allowsHitTesting(false)
       .accessibilityHidden(true)
       HStack {
-        HStack(spacing: 4) {
-          if let phase = installations.phase(appID: app.id, deviceID: device.id), !showsInstallation
-          {
-            Text(verbatim: phase.summary(totalBytes: version.size)).foregroundStyle(.secondary)
-              .monospacedDigit()
-          } else if installations.error(appID: app.id, deviceID: device.id) != nil {
-            Image(systemName: "exclamationmark.triangle").foregroundStyle(.red)
-            versionLabel(version)
-          } else if showsInstallation {
-            versionLabel(version)
-          } else if !version.isCompatible(with: runtime) {
-            Label("iOS \(version.minSimulatorOS)+", systemImage: "exclamationmark.triangle")
-              .foregroundStyle(.orange)
-          } else {
-            Text(verbatim: version.version).monospacedDigit()
-          }
-        }
-        .lineLimit(1)
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
+        versionSummary(version)
         Spacer(minLength: 4)
-        if !showsInstallation {
+        if section != .installed {
           Text(verbatim: ByteCountFormatter.string(fromByteCount: version.size, countStyle: .file))
             .foregroundStyle(.secondary)
             .lineLimit(1)
             .allowsHitTesting(false)
             .accessibilityHidden(true)
         }
-        if showsInstallation {
+        if section == .installed {
           AppUninstallButton(
             app: app, device: device, installedApps: installedApps, installations: installations
           )
@@ -73,7 +55,7 @@ struct CatalogAppCard: View {
         }
         AppInstallButton(
           app: app, version: version, device: device, store: installations,
-          isInstalled: installedApps.isInstalled(bundleID: app.bundleID, deviceID: device.id)
+          installedApps: installedApps, allowsVersionChanges: section == .updates
         )
         .controlSize(.small)
         .accessibilityIdentifier("catalog-install-\(app.id)")
@@ -93,9 +75,9 @@ struct CatalogAppCard: View {
       .accessibilityValue(
         Text(
           verbatim:
-            showsInstallation
-            ? "\(app.displayDescription) · \(installedVersion)"
-            : "\(app.displayDescription) · \(version.version) · \(version.minimumOSLabel) · \(ByteCountFormatter.string(fromByteCount: version.size, countStyle: .file))"
+            section == .installed
+            ? "\(app.displayDescription) · \(versionText(version))"
+            : "\(app.displayDescription) · \(versionText(version)) · \(version.minimumOSLabel) · \(ByteCountFormatter.string(fromByteCount: version.size, countStyle: .file))"
         )
       )
       .accessibilityHint(Text("View app details and versions"))
@@ -117,7 +99,37 @@ struct CatalogAppCard: View {
       ?? String(localized: "Version Unavailable")
   }
 
-  private func versionLabel(_ version: CatalogVersion) -> some View {
-    Text(verbatim: showsInstallation ? installedVersion : version.version).monospacedDigit()
+  private func versionText(_ version: CatalogVersion) -> String {
+    if !showsInstallation { return version.version }
+    if section == .updates,
+      version.comparison(
+        with: installedApps.application(bundleID: app.bundleID, deviceID: device.id)?.version)
+        == .orderedDescending
+    {
+      return "\(installedVersion) → \(version.version)"
+    }
+    return installedVersion
+  }
+
+  private func versionSummary(_ version: CatalogVersion) -> some View {
+    HStack(spacing: 4) {
+      if let phase = installations.phase(appID: app.id, deviceID: device.id),
+        section != .installed, phase != .uninstalling
+      {
+        Text(verbatim: phase.summary(totalBytes: version.size)).foregroundStyle(.secondary)
+          .monospacedDigit()
+      } else if installations.error(appID: app.id, deviceID: device.id) != nil {
+        Image(systemName: "exclamationmark.triangle").foregroundStyle(.red)
+        Text(verbatim: versionText(version)).monospacedDigit()
+      } else if showsInstallation || version.isCompatible(with: runtime) {
+        Text(verbatim: versionText(version)).monospacedDigit()
+      } else {
+        Label("iOS \(version.minSimulatorOS)+", systemImage: "exclamationmark.triangle")
+          .foregroundStyle(.orange)
+      }
+    }
+    .lineLimit(1)
+    .allowsHitTesting(false)
+    .accessibilityHidden(true)
   }
 }

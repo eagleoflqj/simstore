@@ -183,10 +183,27 @@ struct CatalogAppDetailView: View {
           .accessibilityIdentifier("detail-uninstall")
         }
         Spacer()
+        if AppInstallationAction.forVersion(
+          version,
+          installed: installedApps.application(bundleID: app.bundleID, deviceID: device.id),
+          allowsChanges: true
+        ).isVersionChange {
+          Button {
+            installations.open(app: app, on: device)
+          } label: {
+            Text(verbatim: AppInstallationAction.open.title)
+          }
+          .buttonStyle(.bordered)
+          .disabled(
+            device.state != "Booted"
+              || installations.phase(appID: app.id, deviceID: device.id) != nil
+          )
+          .accessibilityIdentifier("detail-open")
+        }
         AppInstallButton(
           app: app, version: version, device: device, store: installations,
-          isInstalled: installedApps.isInstalled(bundleID: app.bundleID, deviceID: device.id),
-          allowsIncompatible: true, isDefaultAction: true
+          installedApps: installedApps,
+          allowsIncompatible: true, allowsVersionChanges: true, isDefaultAction: true
         )
         .accessibilityIdentifier("detail-install")
       }

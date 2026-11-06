@@ -5,6 +5,7 @@ struct AppCatalogTests {
   static func main() throws {
     try decodeAndSort()
     try localizationAndCompatibility()
+    try compatibleUpdates()
     try rejectInvalidCatalogs()
     print("PASS: catalog decoding, version ordering, language fallback, and compatibility.")
   }
@@ -54,6 +55,40 @@ struct AppCatalogTests {
     try require(entry.latestVersion.isCompatible(with: "27.0.1"), "Accept newer runtime patches.")
     try require(
       !entry.latestVersion.isCompatible(with: "unknown"), "Unknown runtime is not compatible.")
+  }
+
+  static func compatibleUpdates() throws {
+    let entry = try decode(apps: [
+      app(versions: [
+        version("1.9.0", minimum: "16.0"), version("1.11.0", minimum: "28.0"),
+        version("1.10.0", minimum: "27.0"),
+      ])
+    ]).apps[0]
+    try require(
+      entry.availableUpdate(from: "1.9.0", runtime: "27.0")?.version == "1.10.0",
+      "Offer the newest compatible build, comparing version components numerically.")
+    try require(
+      entry.availableUpdate(from: "1.8", runtime: "16.4")?.version == "1.9.0",
+      "An older runtime may update to a compatible historical build.")
+    for current in ["1.10", "1.10.0", "1.11.0", "2.0.0"] {
+      try require(
+        entry.availableUpdate(from: current, runtime: "27.0") == nil,
+        "Equal or newer installed versions must never be treated as updates.")
+    }
+    for current: String? in [
+      nil, "", "1.0-beta", "v1.0.0", "1.0.0.1", String(repeating: "9", count: 30),
+    ] {
+      try require(
+        entry.availableUpdate(from: current, runtime: "27.0") == nil,
+        "Unknown and uncomparable installed versions cannot imply an automatic update.")
+    }
+    try require(
+      entry.availableUpdate(from: "1.0.0", runtime: "15.0") == nil
+        && entry.availableUpdate(from: "1.0.0", runtime: "unknown") == nil,
+      "No compatible build must produce no automatic update, rather than falling back to latest.")
+    try require(
+      entry.versions.last?.comparison(with: "1.10.0") == .orderedAscending,
+      "Selecting a historical version must distinguish a downgrade from an update.")
   }
 
   static func rejectInvalidCatalogs() throws {

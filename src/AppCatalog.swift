@@ -34,7 +34,18 @@ struct CatalogApp: Identifiable, Hashable, Sendable {
   }
 
   func recommendedVersion(for runtime: String) -> CatalogVersion {
-    versions.first { $0.isCompatible(with: runtime) } ?? latestVersion
+    latestCompatibleVersion(for: runtime) ?? latestVersion
+  }
+
+  func latestCompatibleVersion(for runtime: String) -> CatalogVersion? {
+    versions.first { $0.isCompatible(with: runtime) }
+  }
+
+  func availableUpdate(from installedVersion: String?, runtime: String) -> CatalogVersion? {
+    guard let version = latestCompatibleVersion(for: runtime),
+      version.comparison(with: installedVersion) == .orderedDescending
+    else { return nil }
+    return version
   }
 }
 
@@ -54,6 +65,14 @@ struct CatalogVersion: Identifiable, Hashable, Sendable {
       let installed = CatalogVersionNumber(runtime)
     else { return false }
     return installed >= minimum
+  }
+
+  func comparison(with installedVersion: String?) -> ComparisonResult? {
+    guard let installedVersion, let installed = CatalogVersionNumber(installedVersion),
+      let candidate = CatalogVersionNumber(version)
+    else { return nil }
+    if candidate == installed { return .orderedSame }
+    return candidate > installed ? .orderedDescending : .orderedAscending
   }
 }
 

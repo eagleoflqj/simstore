@@ -53,6 +53,9 @@ struct ContentView: View {
         didInstall: { application, deviceID in
           installedApps.recordInstallation(application, deviceID: deviceID)
         },
+        didReplace: { application, deviceID in
+          installedApps.recordReplacement(application, deviceID: deviceID)
+        },
         didUninstall: { bundleID, deviceID in
           installedApps.recordUninstallation(bundleID: bundleID, deviceID: deviceID)
         },
@@ -74,12 +77,17 @@ struct ContentView: View {
     discovery?.deviceManager
   }
 
+  private var updateCount: Int? {
+    guard let device = simulators.selectedDevice, let catalog = catalog.catalog else { return nil }
+    return installedApps.updatableApps(in: catalog, for: device, includingRecent: false)?.count
+  }
+
   var body: some View {
     NavigationSplitView {
       GeometryReader { geometry in
         SidebarView(
           discovery: discovery, isChecking: simulators.isChecking, needsXcode: needsXcode,
-          section: $librarySection,
+          section: $librarySection, updateCount: updateCount,
           selectedDeviceID: simulators.selectedDeviceID,
           startingDeviceIDs: simulators.startingDeviceIDs, selectDevice: simulators.selectDevice,
           openRepository: openRepository
@@ -123,6 +131,7 @@ struct ContentView: View {
     .navigationSplitViewStyle(.balanced)
     .frame(minWidth: 900, minHeight: 600)
     .task { await simulators.refresh() }
+    .onChange(of: librarySection) { _, _ in installedApps.clearRecentInstallations() }
     .task(id: shouldMonitorState) {
       while shouldMonitorState && !Task.isCancelled {
         do {

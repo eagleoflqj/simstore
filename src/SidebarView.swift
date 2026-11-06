@@ -13,6 +13,8 @@ struct SidebarView: View {
   let selectDevice: (String) -> Void
   let openRepository: () -> Void
 
+  private static let sectionRowHeight: CGFloat = 44
+
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       HStack(spacing: 10) {
@@ -28,52 +30,7 @@ struct SidebarView: View {
       .padding(.bottom, 27)
       .fixedSize(horizontal: false, vertical: true)
 
-      VStack(spacing: 5) {
-        ForEach(LibrarySection.allCases, id: \.self) { item in
-          Button {
-            section = item
-          } label: {
-            HStack(spacing: 8) {
-              Label {
-                Text(verbatim: item.title)
-              } icon: {
-                Image(systemName: item.symbolName)
-              }
-              .frame(maxWidth: .infinity, alignment: .leading)
-              if item == .updates, let count = visibleUpdateCount {
-                Text(count, format: .number)
-                  .font(.system(size: 10, weight: .semibold))
-                  .monospacedDigit()
-                  .foregroundStyle(.white)
-                  .padding(.horizontal, 6)
-                  .frame(height: 18)
-                  .background(Color.accentColor, in: Capsule())
-                  .accessibilityHidden(true)
-              }
-            }
-            .frame(minHeight: 18)
-            .font(.system(size: 13, weight: section == item ? .semibold : .regular))
-            .foregroundStyle(section == item ? Color.accentColor : Color.primary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 11)
-            .background(
-              section == item ? Color.accentColor.opacity(0.10) : Color.clear,
-              in: RoundedRectangle(cornerRadius: 8)
-            )
-            .contentShape(Rectangle())
-          }
-          .buttonStyle(.plain)
-          .accessibilityLabel(Text(verbatim: item.title))
-          .accessibilityValue(
-            Text(verbatim: item == .updates ? visibleUpdateCount?.formatted() ?? "" : "")
-          )
-          .accessibilityAddTraits(section == item ? .isSelected : [])
-          .accessibilityIdentifier("library-\(item.rawValue)")
-        }
-      }
-      .padding(.horizontal, 12)
-      .fixedSize(horizontal: false, vertical: true)
+      sectionList
 
       simulatorListTitle
         .textCase(.uppercase)
@@ -157,6 +114,53 @@ struct SidebarView: View {
       .padding(24)
       .fixedSize(horizontal: false, vertical: true)
     }
+  }
+
+  private var sectionList: some View {
+    let count = LibrarySection.allCases.count
+    return List(
+      selection: Binding<LibrarySection?>(
+        get: { section },
+        set: { if let item = $0 { section = item } })
+    ) {
+      ForEach(LibrarySection.allCases, id: \.self) { item in
+        HStack(spacing: 8) {
+          Label {
+            Text(verbatim: item.title)
+          } icon: {
+            Image(systemName: item.symbolName)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+          if item == .updates, let count = visibleUpdateCount {
+            Text(count, format: .number)
+              .font(.system(size: 10, weight: .semibold))
+              .monospacedDigit()
+              .foregroundStyle(.white)
+              .padding(.horizontal, 6)
+              .frame(height: 18)
+              .background(Color.accentColor, in: Capsule())
+              .accessibilityHidden(true)
+          }
+        }
+        .frame(minHeight: 18)
+        .font(.system(size: 13, weight: section == item ? .semibold : .regular))
+        .tag(item)
+        .listRowInsets(EdgeInsets(top: 11, leading: 12, bottom: 11, trailing: 12))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(verbatim: item.title))
+        .accessibilityValue(
+          Text(verbatim: item == .updates ? visibleUpdateCount?.formatted() ?? "" : "")
+        )
+        .accessibilityIdentifier("library-\(item.rawValue)")
+      }
+    }
+    .listStyle(.sidebar)
+    .environment(\.defaultMinListRowHeight, Self.sectionRowHeight)
+    .contentMargins(.vertical, 0, for: .scrollContent)
+    .scrollContentBackground(.hidden)
+    .scrollDisabled(true)
+    .frame(height: CGFloat(count) * Self.sectionRowHeight)
+    .accessibilityIdentifier("library-navigation")
   }
 
   private var simulatorListTitle: Text { Text("Simulators") }

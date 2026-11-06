@@ -37,7 +37,6 @@ struct SimulatorDiscoveryErrorView: View {
         Button("Open Xcode", systemImage: "hammer") { openXcode() }
         SimulatorCheckButton(isChecking: isChecking, isRetry: true, action: checkAgain)
       }
-      .controlSize(.large)
       DisclosureGroup("Details") {
         Text(error.localizedDescription)
           .font(.system(size: 11, design: .monospaced))

@@ -18,7 +18,9 @@ add_executable(SimStore MACOSX_BUNDLE
     CatalogCategory.swift
     AppDownload.swift
     AppPackage.swift
+    MachOValidation.swift
     AppInstaller.swift
+    AppInstallationPhase.swift
     AppInstallationStore.swift
     AppInstallationAction.swift
     AppInstallButton.swift
@@ -39,7 +41,37 @@ add_executable(SimStore MACOSX_BUNDLE
     StableSizeView.swift
     SimulatorCheckButton.swift
     PreviewScenario.swift
+    SelfUpdateRelease.swift
+    SelfUpdateClient.swift
+    SelfUpdatePackage.swift
+    SelfUpdateInstallation.swift
+    SelfUpdater.swift
+    SelfUpdateStore.swift
+    SelfUpdateView.swift
+    SelfUpdateController.swift
 )
+
+add_executable(SimStoreUpdater
+    SelfUpdateHelper.swift
+    SelfUpdateInstallation.swift
+    SelfUpdateRelease.swift
+    SelfUpdatePackage.swift
+    MachOValidation.swift
+    AppCatalog.swift
+)
+set(UPDATE_HELPER "${CMAKE_CURRENT_BINARY_DIR}/updater/SimStoreUpdater")
+set_target_properties(SimStoreUpdater PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/updater"
+    Swift_MODULE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/updater/modules"
+)
+target_link_options(SimStoreUpdater PRIVATE
+    "SHELL:-Xclang-linker -isysroot -Xclang-linker \"${CMAKE_OSX_SYSROOT}\""
+)
+set_source_files_properties("${UPDATE_HELPER}" PROPERTIES
+    GENERATED TRUE MACOSX_PACKAGE_LOCATION Helpers
+)
+target_sources(SimStore PRIVATE "${UPDATE_HELPER}")
+add_dependencies(SimStore SimStoreUpdater)
 
 target_compile_definitions(SimStore PRIVATE "$<$<CONFIG:Debug>:DEBUG>")
 

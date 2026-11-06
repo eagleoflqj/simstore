@@ -57,7 +57,9 @@ add_executable(SimStoreInstallationTest AppInstallationTests.swift AppDownloadTe
     "${PROJECT_SOURCE_DIR}/src/AppConfiguration.swift"
     "${PROJECT_SOURCE_DIR}/src/AppDownload.swift"
     "${PROJECT_SOURCE_DIR}/src/AppPackage.swift"
+    "${PROJECT_SOURCE_DIR}/src/MachOValidation.swift"
     "${PROJECT_SOURCE_DIR}/src/AppInstaller.swift"
+    "${PROJECT_SOURCE_DIR}/src/AppInstallationPhase.swift"
     "${PROJECT_SOURCE_DIR}/src/AppInstallationStore.swift"
     "${PROJECT_SOURCE_DIR}/src/AppInstallationAction.swift"
     "${PROJECT_SOURCE_DIR}/src/InstalledAppsStore.swift"
@@ -161,3 +163,51 @@ add_test(NAME release-workflow COMMAND "${Python3_EXECUTABLE}" -m unittest disco
     -s "${CMAKE_CURRENT_SOURCE_DIR}" -p "test_*.py"
 )
 set_tests_properties(release-workflow PROPERTIES TIMEOUT 60)
+
+add_executable(SimStoreSelfUpdateTest
+    SelfUpdateTests.swift SelfUpdateFixtures.swift SelfUpdateModelTests.swift
+    SelfUpdatePackageTests.swift SelfUpdateInstallerTests.swift SelfUpdateStoreTests.swift
+    SelfUpdateViewTests.swift
+    "${PROJECT_SOURCE_DIR}/src/SelfUpdateRelease.swift"
+    "${PROJECT_SOURCE_DIR}/src/SelfUpdateClient.swift"
+    "${PROJECT_SOURCE_DIR}/src/SelfUpdatePackage.swift"
+    "${PROJECT_SOURCE_DIR}/src/SelfUpdateInstallation.swift"
+    "${PROJECT_SOURCE_DIR}/src/SelfUpdater.swift"
+    "${PROJECT_SOURCE_DIR}/src/SelfUpdateStore.swift"
+    "${PROJECT_SOURCE_DIR}/src/SelfUpdateView.swift"
+    "${PROJECT_SOURCE_DIR}/src/SelfUpdateController.swift"
+    "${PROJECT_SOURCE_DIR}/src/AppCatalog.swift"
+    "${PROJECT_SOURCE_DIR}/src/AppConfiguration.swift"
+    "${PROJECT_SOURCE_DIR}/src/AppDownload.swift"
+    "${PROJECT_SOURCE_DIR}/src/AppPackage.swift"
+    "${PROJECT_SOURCE_DIR}/src/MachOValidation.swift"
+    "${PROJECT_SOURCE_DIR}/src/Command.swift"
+    "${PROJECT_SOURCE_DIR}/src/AppInstallationPhase.swift"
+    "${PROJECT_SOURCE_DIR}/src/DownloadProgressView.swift"
+    "${PROJECT_SOURCE_DIR}/src/StableSizeView.swift"
+)
+target_compile_options(SimStoreSelfUpdateTest PRIVATE -parse-as-library)
+add_test(NAME self-update COMMAND SimStoreSelfUpdateTest)
+set_tests_properties(self-update PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
+
+add_executable(SimStoreSelfUpdateIntegrationTest
+    SelfUpdateIntegrationTest.swift SelfUpdateFixtures.swift
+    "${PROJECT_SOURCE_DIR}/src/SelfUpdateRelease.swift"
+    "${PROJECT_SOURCE_DIR}/src/SelfUpdatePackage.swift"
+    "${PROJECT_SOURCE_DIR}/src/SelfUpdateInstallation.swift"
+    "${PROJECT_SOURCE_DIR}/src/AppCatalog.swift"
+    "${PROJECT_SOURCE_DIR}/src/MachOValidation.swift"
+    "${PROJECT_SOURCE_DIR}/src/Command.swift"
+)
+add_dependencies(SimStoreSelfUpdateIntegrationTest SimStore)
+target_compile_options(SimStoreSelfUpdateIntegrationTest PRIVATE -parse-as-library)
+add_test(NAME self-update-integration COMMAND SimStoreSelfUpdateIntegrationTest "$<TARGET_BUNDLE_DIR:SimStore>")
+set_tests_properties(self-update-integration PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
+
+add_test(NAME update-assistant-metadata COMMAND "${CMAKE_COMMAND}"
+    "-DEXECUTABLE=$<TARGET_FILE:SimStoreUpdater>"
+    "-DINFO_PLIST=$<TARGET_BUNDLE_DIR:SimStore>/Contents/Info.plist"
+    "-DEXPECTED_SDK=${SDK_VERSION}"
+    "-DEXPECTED_MIN_OS=${CMAKE_OSX_DEPLOYMENT_TARGET}"
+    -P "${CMAKE_CURRENT_SOURCE_DIR}/BundleMetadataTest.cmake"
+)

@@ -31,7 +31,6 @@ struct MissingXcodeView: View {
         SimulatorCheckButton(isChecking: isChecking, action: checkAgain)
           .buttonStyle(.bordered)
       }
-      .controlSize(.large)
       .padding(.top, 25)
     }
     .padding(.horizontal, 30)

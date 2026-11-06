@@ -2,6 +2,7 @@ import Foundation
 
 enum AppDownload {
   typealias Progress = @Sendable (Int64) -> Void
+  typealias Fetch = @Sendable (URL, URL, @escaping Progress) async throws -> Void
 
   static func fetch(from url: URL, to destination: URL, progress: @escaping Progress) async throws {
     try Task.checkCancellation()

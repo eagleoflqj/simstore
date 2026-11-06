@@ -81,6 +81,38 @@
         }
       }
     },
+    "A New Nightly Is Available": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A New Nightly Is Available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有新的每夜构建可用"
+          }
+        }
+      }
+    },
+    "A New Version Is Available": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A New Version Is Available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有新版本可用"
+          }
+        }
+      }
+    },
     "A simulator is where it starts.": {
       "localizations": {
         "en": {
@@ -93,6 +125,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "从一台模拟器开始。"
+          }
+        }
+      }
+    },
+    "About SimStore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About SimStore"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关于 SimStore"
           }
         }
       }
@@ -205,6 +253,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "可用版本"
+          }
+        }
+      }
+    },
+    "Available updates have changed. Check for updates again before downloading.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available updates have changed. Check for updates again before downloading."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用的更新已发生变化，请重新检查更新后再下载。"
           }
         }
       }
@@ -433,6 +497,38 @@
         }
       }
     },
+    "Check for Updates": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check for Updates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查更新"
+          }
+        }
+      }
+    },
+    "Check for Updates…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check for Updates…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查更新…"
+          }
+        }
+      }
+    },
     "Check for iOS simulators": {
       "localizations": {
         "en": {
@@ -605,6 +701,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法启动模拟器"
+          }
+        }
+      }
+    },
+    "Couldn’t Update SimStore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t Update SimStore"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法更新 SimStore"
           }
         }
       }
@@ -801,6 +913,22 @@
         }
       }
     },
+    "Get the latest SimStore version compatible with this Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get the latest SimStore version compatible with this Mac."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "获取兼容这台 Mac 的最新 SimStore 版本。"
+          }
+        }
+      }
+    },
     "Health": {
       "localizations": {
         "en": {
@@ -861,6 +989,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "在 %2$@ 上安装 %1$@？这是较旧的版本，可能无法使用现有应用数据。"
+          }
+        }
+      }
+    },
+    "Install Nightly and Restart": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install Nightly and Restart"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装每夜构建并重新启动"
           }
         }
       }
@@ -1057,6 +1201,22 @@
         }
       }
     },
+    "Move SimStore to a writable Applications folder before updating it.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move SimStore to a writable Applications folder before updating it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先将 SimStore 移至可写入的“应用程序”文件夹，再进行更新。"
+          }
+        }
+      }
+    },
     "Newer compatible versions of your installed apps will appear here.": {
       "localizations": {
         "en": {
@@ -1085,6 +1245,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "适用于此模拟器的新版本。"
+          }
+        }
+      }
+    },
+    "Nightly builds are unstable and may contain bugs.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nightly builds are unstable and may contain bugs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每夜构建是不稳定版本，可能存在问题。"
           }
         }
       }
@@ -1473,6 +1649,22 @@
         }
       }
     },
+    "Restarting SimStore…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restarting SimStore…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在重新启动 SimStore…"
+          }
+        }
+      }
+    },
     "Runtime": {
       "localizations": {
         "en": {
@@ -1581,6 +1773,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在关机"
+          }
+        }
+      }
+    },
+    "SimStore Is Up to Date": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SimStore Is Up to Date"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SimStore 已是最新版本"
+          }
+        }
+      }
+    },
+    "SimStore did not quit in time. The update was canceled.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SimStore did not quit in time. The update was canceled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SimStore 未能及时退出，更新已取消。"
+          }
+        }
+      }
+    },
+    "SimStore will quit and reopen to finish the update.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SimStore will quit and reopen to finish the update."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SimStore 将退出并重新打开以完成更新。"
           }
         }
       }
@@ -1889,6 +2129,22 @@
         }
       }
     },
+    "The downloaded app does not match the selected SimStore build.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The downloaded app does not match the selected SimStore build."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载的应用与所选的 SimStore 构建不符。"
+          }
+        }
+      }
+    },
     "The downloaded app does not match the selected app and version.": {
       "localizations": {
         "en": {
@@ -1901,6 +2157,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "下载的应用与所选应用或版本不符。"
+          }
+        }
+      }
+    },
+    "The downloaded app is not compatible with this Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The downloaded app is not compatible with this Mac."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载的应用与这台 Mac 不兼容。"
           }
         }
       }
@@ -1937,6 +2209,22 @@
         }
       }
     },
+    "The previous app is saved at %@. Restore it before trying again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The previous app is saved at %@. Restore it before trying again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "旧版应用保存在 %@，请先恢复它再重试。"
+          }
+        }
+      }
+    },
     "The simulator application could not be found. Check your Xcode installation.": {
       "localizations": {
         "en": {
@@ -1969,6 +2257,54 @@
         }
       }
     },
+    "The update assistant could not start. SimStore has not been replaced.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The update assistant could not start. SimStore has not been replaced."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法启动更新助手，SimStore 未被替换。"
+          }
+        }
+      }
+    },
+    "The update information is invalid. Check for updates again later.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The update information is invalid. Check for updates again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新信息无效，请稍后重新检查更新。"
+          }
+        }
+      }
+    },
+    "The updated app could not start. The previous version has been restored.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The updated app could not start. The previous version has been restored."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新版应用无法启动，已恢复旧版。"
+          }
+        }
+      }
+    },
     "This build requires iOS %@ or later. It may not work on iOS %@.": {
       "localizations": {
         "en": {
@@ -1981,6 +2317,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "此构建需要 iOS %@ 或更高版本，在 iOS %@ 上可能无法正常运行。"
+          }
+        }
+      }
+    },
+    "This copy of SimStore has invalid version information. Reinstall it to update.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This copy of SimStore has invalid version information. Reinstall it to update."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前 SimStore 的版本信息无效，请重新安装后再更新。"
           }
         }
       }
@@ -2109,6 +2461,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "请更新 SimStore 以读取此应用目录。"
+          }
+        }
+      }
+    },
+    "Update and Restart": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update and Restart"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新并重新启动"
           }
         }
       }
@@ -2285,6 +2653,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "iPhone 和 iPad 模拟器将显示在这里。"
+          }
+        }
+      }
+    },
+    "You’re using the latest version available for macOS %@.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You’re using the latest version available for macOS %@."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你正在使用可在 macOS %@ 上运行的最新版本。"
           }
         }
       }

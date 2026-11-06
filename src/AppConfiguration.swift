@@ -5,6 +5,17 @@ enum AppConfiguration {
     Bundle.main.bundleIdentifier ?? ProcessInfo.processInfo.processName
   static let cacheDirectory = URL.cachesDirectory.appending(component: applicationIdentifier)
   static let buildsRepositoryURL = URL(string: "https://github.com/iSimStore/simstore-builds")!
+  static let repositoryURL = URL(string: "https://github.com/iSimStore/simstore")!
+  static let archiveName = "SimStore.app.tar.bz2"
+
+  static var updateIndexURL: URL {
+    updateAssetURL(tag: "latest", filename: "version.json")
+  }
+
+  static func updateAssetURL(tag: String, filename: String) -> URL {
+    repositoryURL.appending(path: "releases/download").appending(component: tag)
+      .appending(component: filename)
+  }
 
   static var catalogURL: URL {
     buildsRepositoryURL.appending(path: "releases/download/latest/index.json")

@@ -107,7 +107,6 @@ struct SimulatorDetailView: View {
         DeviceManagerButton(name: deviceManagerName, action: openDeviceManager)
           .buttonStyle(.bordered)
       }
-      .controlSize(.large)
     }
     .frame(maxWidth: 480)
     .padding(32)

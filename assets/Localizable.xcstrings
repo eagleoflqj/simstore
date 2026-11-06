@@ -785,6 +785,38 @@
         }
       }
     },
+    "Games": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Games"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "游戏"
+          }
+        }
+      }
+    },
+    "Health": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Health"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "健康"
+          }
+        }
+      }
+    },
     "Install": {
       "localizations": {
         "en": {
@@ -989,6 +1021,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "请确认已安装 Xcode 并选中其命令行工具，然后重试。"
+          }
+        }
+      }
+    },
+    "Maps": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图"
           }
         }
       }
@@ -1341,6 +1389,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "已发布的应用将显示在这里。"
+          }
+        }
+      }
+    },
+    "Reading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阅读"
           }
         }
       }

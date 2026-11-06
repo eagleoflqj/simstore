@@ -21,6 +21,19 @@ target_compile_options(SimStoreCatalogTest PRIVATE -parse-as-library)
 add_test(NAME catalog COMMAND SimStoreCatalogTest)
 set_tests_properties(catalog PROPERTIES TIMEOUT 10)
 
+add_executable(SimStoreCatalogCategoriesCheck EXCLUDE_FROM_ALL CatalogCategoriesCheck.swift
+    "${PROJECT_SOURCE_DIR}/src/AppCatalog.swift"
+    "${PROJECT_SOURCE_DIR}/src/AppConfiguration.swift"
+    "${PROJECT_SOURCE_DIR}/src/CatalogCategory.swift"
+)
+target_compile_options(SimStoreCatalogCategoriesCheck PRIVATE -parse-as-library)
+add_custom_target(CheckCatalogCategories
+    COMMAND "$<TARGET_FILE:SimStoreCatalogCategoriesCheck>"
+    DEPENDS SimStoreCatalogCategoriesCheck
+    COMMENT "Checking category coverage in the latest app catalog"
+    VERBATIM
+)
+
 add_executable(SimStoreCatalogLoadingTest CatalogLoadingTests.swift
     "${PROJECT_SOURCE_DIR}/src/AppCatalog.swift"
     "${PROJECT_SOURCE_DIR}/src/CatalogClient.swift"

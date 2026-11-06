@@ -15,6 +15,7 @@ add_executable(SimStore MACOSX_BUNDLE
     ContentView.swift
     LibrarySection.swift
     AppCatalog.swift
+    CatalogCategory.swift
     AppDownload.swift
     AppPackage.swift
     AppInstaller.swift

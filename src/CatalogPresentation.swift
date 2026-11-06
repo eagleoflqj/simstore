@@ -1,21 +1,5 @@
 import SwiftUI
 
-enum CatalogCategory {
-  static func title(_ category: String) -> String {
-    switch category {
-    case "browser": String(localized: "Browser")
-    case "cloud": String(localized: "Cloud")
-    case "communication": String(localized: "Communication")
-    case "media": String(localized: "Media")
-    case "productivity": String(localized: "Productivity")
-    case "security": String(localized: "Security")
-    case "social": String(localized: "Social")
-    case "utilities": String(localized: "Utilities")
-    default: category
-    }
-  }
-}
-
 extension CatalogApp {
   var displayDescription: String {
     localizedDescription(preferredLanguages: Bundle.main.preferredLocalizations)

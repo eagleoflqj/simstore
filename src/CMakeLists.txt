@@ -79,10 +79,18 @@ set_target_properties(SimStore PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER io.simstore.SimStore
     MACOSX_BUNDLE_ICON_FILE simstore.icns
     MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
-    MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+    MACOSX_BUNDLE_BUNDLE_VERSION "${SIMSTORE_BUILD}"
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}"
     Swift_MODULE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/modules"
 )
+add_custom_target(StampVersion
+    COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/scripts/version.py"
+        stamp --source "${PROJECT_SOURCE_DIR}"
+        --plist "$<TARGET_BUNDLE_DIR:SimStore>/Contents/Info.plist"
+    COMMENT "Updating bundle version from Git"
+    VERBATIM
+)
+add_dependencies(SimStore StampVersion)
 add_custom_command(TARGET SimStore POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E rm -f "$<TARGET_BUNDLE_DIR:SimStore>/Contents/MacOS/SimStore.d"
     VERBATIM

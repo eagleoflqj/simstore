@@ -1,0 +1,30 @@
+name: Update version index
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    if: github.event_name == 'workflow_dispatch' || (!github.event.release.prerelease && github.event.release.tag_name != 'latest')
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+    concurrency:
+      group: simstore-releases
+      queue: max
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Update version.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: python3 scripts/release.py index --repo "$GH_REPO" --upload

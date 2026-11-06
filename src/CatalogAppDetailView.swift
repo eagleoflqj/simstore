@@ -98,8 +98,8 @@ struct CatalogAppDetailView: View {
             }
             GridRow {
               Text("Bundle ID").foregroundStyle(.secondary)
-              Text(verbatim: app.bundleID).font(.system(size: 11, design: .monospaced))
-                .textSelection(.enabled)
+              CopyableText(value: app.bundleID, copyLabel: "Copy Bundle ID")
+                .font(.system(size: 11, design: .monospaced))
             }
           }
           .font(.system(size: 13))
@@ -125,6 +125,13 @@ struct CatalogAppDetailView: View {
             Link(destination: app.repository) {
               Label("Source Repository", systemImage: "curlybraces")
             }
+            Link(
+              destination: AppConfiguration.manifestURL(
+                appID: app.id, revision: version.recipeRevision)
+            ) {
+              Label("Build Manifest", systemImage: "doc.text")
+            }
+            .accessibilityIdentifier("build-manifest")
             Link(destination: AppConfiguration.releaseURL(appID: app.id, version: version.version))
             {
               Label("Build Release", systemImage: "arrow.up.right.square")
@@ -142,7 +149,7 @@ struct CatalogAppDetailView: View {
                 link: AppConfiguration.commitURL(
                   repository: AppConfiguration.buildsRepositoryURL, revision: version.recipeRevision
                 ))
-              buildDetail("SHA-256", value: version.sha256)
+              buildDetail("SHA-256", value: version.sha256, copyLabel: "Copy SHA-256")
             }
             .padding(.top, 12)
           }
@@ -188,14 +195,17 @@ struct CatalogAppDetailView: View {
     .frame(width: 580)
   }
 
-  private func buildDetail(_ title: LocalizedStringKey, value: String, link: URL? = nil)
-    -> some View
-  {
+  private func buildDetail(
+    _ title: LocalizedStringKey, value: String, link: URL? = nil,
+    copyLabel: LocalizedStringKey? = nil
+  ) -> some View {
     VStack(alignment: .leading, spacing: 4) {
       Text(title).foregroundStyle(.secondary)
       Group {
         if let link {
           Link(destination: link) { Text(verbatim: value) }
+        } else if let copyLabel {
+          CopyableText(value: value, copyLabel: copyLabel)
         } else {
           Text(verbatim: value).textSelection(.enabled)
         }

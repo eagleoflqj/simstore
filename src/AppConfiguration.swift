@@ -18,6 +18,11 @@ enum AppConfiguration {
     repository.appending(path: "commit").appending(component: revision)
   }
 
+  static func manifestURL(appID: String, revision: String) -> URL {
+    buildsRepositoryURL.appending(path: "blob").appending(component: revision)
+      .appending(path: "apps").appending(component: appID).appending(component: "manifest.yaml")
+  }
+
   static func assetURL(appID: String, version: String, filename: String) -> URL {
     buildsRepositoryURL.appending(path: "releases/download")
       .appending(component: "\(appID)/\(version)").appending(component: filename)

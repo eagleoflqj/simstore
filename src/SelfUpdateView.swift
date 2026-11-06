@@ -41,21 +41,28 @@ struct SelfUpdateView: View {
               Button("Update and Restart", action: store.install).buttonStyle(.borderedProminent)
             }
           } else {
-            Button(action: store.check) {
-              StableSizeView(store.isChecking, states: [false, true]) { checking in
-                if checking { Text("Checking…") } else { Text("Check for Updates") }
-              }
+            if store.isChecking {
+              checkButton
+            } else {
+              checkButton.buttonStyle(.borderedProminent)
             }
-            .disabled(store.isChecking)
           }
         }
       }
       .buttonStyle(.bordered)
-      .controlSize(.large)
     }
     .padding(24)
     .frame(width: 460)
     .fixedSize(horizontal: false, vertical: true)
+  }
+
+  private var checkButton: some View {
+    Button(action: store.check) {
+      StableSizeView(store.isChecking, states: [false, true]) { checking in
+        if checking { Text("Checking…") } else { Text("Check for Updates") }
+      }
+    }
+    .disabled(store.isChecking)
   }
 
   @ViewBuilder

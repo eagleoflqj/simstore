@@ -46,6 +46,7 @@ add_executable(SimStoreInstallationTest AppInstallationTests.swift AppDownloadTe
     "${PROJECT_SOURCE_DIR}/src/AppPackage.swift"
     "${PROJECT_SOURCE_DIR}/src/AppInstaller.swift"
     "${PROJECT_SOURCE_DIR}/src/AppInstallationStore.swift"
+    "${PROJECT_SOURCE_DIR}/src/AppInstallationAction.swift"
     "${PROJECT_SOURCE_DIR}/src/InstalledAppsStore.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorApplications.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"

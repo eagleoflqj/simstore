@@ -7,6 +7,7 @@ struct SidebarView: View {
   let isChecking: Bool
   let needsXcode: Bool
   @Binding var section: LibrarySection
+  let updateCount: Int?
   let selectedDeviceID: String?
   let startingDeviceIDs: Set<String>
   let selectDevice: (String) -> Void
@@ -32,11 +33,25 @@ struct SidebarView: View {
           Button {
             section = item
           } label: {
-            Label {
-              Text(verbatim: item.title)
-            } icon: {
-              Image(systemName: item.symbolName)
+            HStack(spacing: 8) {
+              Label {
+                Text(verbatim: item.title)
+              } icon: {
+                Image(systemName: item.symbolName)
+              }
+              .frame(maxWidth: .infinity, alignment: .leading)
+              if item == .updates, let count = visibleUpdateCount {
+                Text(count, format: .number)
+                  .font(.system(size: 10, weight: .semibold))
+                  .monospacedDigit()
+                  .foregroundStyle(.white)
+                  .padding(.horizontal, 6)
+                  .frame(height: 18)
+                  .background(Color.accentColor, in: Capsule())
+                  .accessibilityHidden(true)
+              }
             }
+            .frame(minHeight: 18)
             .font(.system(size: 13, weight: section == item ? .semibold : .regular))
             .foregroundStyle(section == item ? Color.accentColor : Color.primary)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -49,10 +64,13 @@ struct SidebarView: View {
             .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
+          .accessibilityLabel(Text(verbatim: item.title))
+          .accessibilityValue(
+            Text(verbatim: item == .updates ? visibleUpdateCount?.formatted() ?? "" : "")
+          )
           .accessibilityAddTraits(section == item ? .isSelected : [])
           .accessibilityIdentifier("library-\(item.rawValue)")
         }
-        sidebarPlaceholder("Updates", systemImage: "arrow.triangle.2.circlepath")
       }
       .padding(.horizontal, 12)
       .fixedSize(horizontal: false, vertical: true)
@@ -143,12 +161,8 @@ struct SidebarView: View {
 
   private var simulatorListTitle: Text { Text("Simulators") }
 
-  private func sidebarPlaceholder(_ title: LocalizedStringKey, systemImage: String) -> some View {
-    Label(title, systemImage: systemImage)
-      .font(.system(size: 13))
-      .foregroundStyle(.tertiary)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(.horizontal, 12)
-      .padding(.vertical, 11)
+  private var visibleUpdateCount: Int? {
+    guard let updateCount, updateCount > 0 else { return nil }
+    return updateCount
   }
 }

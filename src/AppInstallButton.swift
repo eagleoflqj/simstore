@@ -5,52 +5,80 @@ struct AppInstallButton: View {
   let version: CatalogVersion
   let device: SimulatorDevice
   let store: AppInstallationStore
-  let isInstalled: Bool?
+  let installedApps: InstalledAppsStore
   var allowsIncompatible = false
+  var allowsVersionChanges = false
   var isDefaultAction = false
 
-  private enum Action: CaseIterable {
-    case install, open, cancel, installing, canceling, opening, uninstalling
+  @State private var showsConfirmation = false
+  @State private var pendingVersionChange: VersionChange?
 
-    var title: String {
-      switch self {
-      case .install: String(localized: "Install")
-      case .open: String(localized: "Open")
-      case .cancel: String(localized: "Cancel")
-      case .installing: AppInstallationPhase.installing.title
-      case .canceling: AppInstallationPhase.canceling.title
-      case .opening: AppInstallationPhase.opening.title
-      case .uninstalling: AppInstallationPhase.uninstalling.title
-      }
-    }
+  private struct VersionChange {
+    let app: CatalogApp
+    let version: CatalogVersion
+    let device: SimulatorDevice
+    let action: AppInstallationAction
+  }
+
+  private var isInstalled: Bool? {
+    installedApps.isInstalled(bundleID: app.bundleID, deviceID: device.id)
+  }
+
+  private var idleAction: AppInstallationAction {
+    .forVersion(
+      version, installed: installedApps.application(bundleID: app.bundleID, deviceID: device.id),
+      allowsChanges: allowsVersionChanges)
   }
 
   private var phase: AppInstallationPhase? {
     store.phase(appID: app.id, deviceID: device.id)
   }
 
-  private var action: Action {
+  private var action: AppInstallationAction {
     switch phase {
     case .downloading, .verifying, .extracting: .cancel
     case .installing: .installing
     case .canceling: .canceling
     case .opening: .opening
     case .uninstalling: .uninstalling
-    case nil: isInstalled == true ? .open : .install
+    case nil: idleAction
     }
   }
 
   private var enabled: Bool {
     if let phase { return phase.canCancel }
     guard device.state == "Booted", let isInstalled else { return false }
-    return isInstalled || allowsIncompatible || version.isCompatible(with: device.runtime)
+    if idleAction == .open { return isInstalled }
+    return allowsIncompatible || version.isCompatible(with: device.runtime)
   }
 
   var body: some View {
-    if phase == nil {
-      button.buttonStyle(.borderedProminent)
-    } else {
-      button.buttonStyle(.bordered)
+    Group {
+      if phase == nil {
+        button.buttonStyle(.borderedProminent)
+      } else {
+        button.buttonStyle(.bordered)
+      }
+    }
+    .alert(
+      "Change Installed Version?", isPresented: $showsConfirmation, presenting: pendingVersionChange
+    ) { request in
+      Button("Cancel", role: .cancel) {}
+      Button(role: .destructive) {
+        store.replace(app: request.app, version: request.version, on: request.device)
+      } label: {
+        Text(verbatim: request.action.title)
+      }
+    } message: { request in
+      if request.action == .downgrade {
+        Text(
+          "Install \(request.version.version) on \(request.device.name)? This is an older version and may not work with existing app data."
+        )
+      } else {
+        Text(
+          "Install \(request.version.version) on \(request.device.name)? The installed version could not be compared."
+        )
+      }
     }
   }
 
@@ -58,12 +86,20 @@ struct AppInstallButton: View {
     Button {
       switch action {
       case .install: store.install(app: app, version: version, on: device)
+      case .update, .downgrade, .replace:
+        if action.needsConfirmation {
+          pendingVersionChange = VersionChange(
+            app: app, version: version, device: device, action: action)
+          showsConfirmation = true
+        } else {
+          store.replace(app: app, version: version, on: device)
+        }
       case .open: store.open(app: app, on: device)
       case .cancel: store.cancel(appID: app.id, deviceID: device.id)
       case .installing, .canceling, .opening, .uninstalling: break
       }
     } label: {
-      StableSizeView(action, states: Action.allCases) { value in
+      StableSizeView(action, states: AppInstallationAction.allCases) { value in
         Text(verbatim: value.title)
       }
       .lineLimit(1)

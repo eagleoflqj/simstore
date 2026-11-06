@@ -129,6 +129,22 @@
         }
       }
     },
+    "All Apps Are Up to Date": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Apps Are Up to Date"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部应用已是最新"
+          }
+        }
+      }
+    },
     "App Repository": {
       "localizations": {
         "en": {
@@ -365,6 +381,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "分类"
+          }
+        }
+      }
+    },
+    "Change Installed Version?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change Installed Version?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更改已安装版本？"
           }
         }
       }
@@ -689,6 +721,22 @@
         }
       }
     },
+    "Downgrade": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downgrade"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "降级"
+          }
+        }
+      }
+    },
     "Download Size": {
       "localizations": {
         "en": {
@@ -749,6 +797,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "安装"
+          }
+        }
+      }
+    },
+    "Install %@ on %@? The installed version could not be compared.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install %1$@ on %2$@? The installed version could not be compared."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 %2$@ 上安装 %1$@？无法比较已安装版本。"
+          }
+        }
+      }
+    },
+    "Install %@ on %@? This is an older version and may not work with existing app data.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install %1$@ on %2$@? This is an older version and may not work with existing app data."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 %2$@ 上安装 %1$@？这是较旧的版本，可能无法使用现有应用数据。"
           }
         }
       }
@@ -909,6 +989,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "媒体"
+          }
+        }
+      }
+    },
+    "Newer compatible versions of your installed apps will appear here.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Newer compatible versions of your installed apps will appear here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装应用有兼容的新版本时，会显示在这里。"
+          }
+        }
+      }
+    },
+    "Newer versions for your simulator.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Newer versions for your simulator."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "适用于此模拟器的新版本。"
           }
         }
       }
@@ -1885,6 +1997,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在卸载…"
+          }
+        }
+      }
+    },
+    "Update": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新"
           }
         }
       }

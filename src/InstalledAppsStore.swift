@@ -10,6 +10,7 @@ final class InstalledAppsStore {
   private(set) var isLoading = false
   private(set) var error: String?
   private var recentInstallations: Set<String> = []
+  private var recentReplacements: Set<String> = []
 
   @ObservationIgnored
   private let load: @Sendable (SimulatorDevice) async throws -> [SimulatorApplication]
@@ -36,6 +37,25 @@ final class InstalledAppsStore {
     return catalog.apps.filter { installed.contains($0.bundleID.lowercased()) }
   }
 
+  func updatableApps(
+    in catalog: AppCatalog, for device: SimulatorDevice, includingRecent: Bool = true
+  ) -> [CatalogApp]? {
+    guard device.state == "Booted", self.deviceID == device.id, applications != nil else {
+      return nil
+    }
+    return catalog.apps.filter { app in
+      guard let installed = application(bundleID: app.bundleID, deviceID: device.id),
+        installed.isUserApplication
+      else { return false }
+      if app.availableUpdate(from: installed.version, runtime: device.runtime) != nil {
+        return true
+      }
+      return includingRecent && recentReplacements.contains(app.bundleID.lowercased())
+        && app.latestCompatibleVersion(for: device.runtime)?.comparison(with: installed.version)
+          == .orderedSame
+    }
+  }
+
   func application(bundleID: String, deviceID: String) -> SimulatorApplication? {
     guard self.deviceID == deviceID else { return nil }
     return applications?.first { $0.bundleID.caseInsensitiveCompare(bundleID) == .orderedSame }
@@ -50,20 +70,34 @@ final class InstalledAppsStore {
     }
   }
 
-  func clearRecentInstallations() { recentInstallations = [] }
+  func clearRecentInstallations() {
+    recentInstallations = []
+    recentReplacements = []
+  }
 
   func removeRecentInstallation(bundleID: String, deviceID: String) {
     guard self.deviceID == deviceID else { return }
     recentInstallations.remove(bundleID.lowercased())
+    recentReplacements.remove(bundleID.lowercased())
   }
 
   func recordInstallation(_ application: SimulatorApplication, deviceID: String) {
     guard self.deviceID == deviceID else { return }
+    mergeInstallation(application)
+    recentInstallations.insert(application.bundleID.lowercased())
+  }
+
+  func recordReplacement(_ application: SimulatorApplication, deviceID: String) {
+    guard self.deviceID == deviceID else { return }
+    mergeInstallation(application)
+    recentReplacements.insert(application.bundleID.lowercased())
+  }
+
+  private func mergeInstallation(_ application: SimulatorApplication) {
     let bundleID = application.bundleID.lowercased()
     installedDuringRefresh.removeAll { $0.bundleID.lowercased() == bundleID }
     installedDuringRefresh.append(application)
     removedDuringRefresh.remove(bundleID)
-    recentInstallations.insert(bundleID)
     applications?.removeAll { $0.bundleID.lowercased() == bundleID }
     applications?.append(application)
   }
@@ -74,6 +108,7 @@ final class InstalledAppsStore {
     installedDuringRefresh.removeAll { $0.bundleID.lowercased() == bundleID }
     removedDuringRefresh.insert(bundleID)
     recentInstallations.remove(bundleID)
+    recentReplacements.remove(bundleID)
     applications?.removeAll { $0.bundleID.lowercased() == bundleID }
   }
 

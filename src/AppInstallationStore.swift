@@ -15,6 +15,7 @@ final class AppInstallationStore {
   private(set) var uninstalledApp: Key?
   @ObservationIgnored private let installer: AppInstaller
   @ObservationIgnored private let didInstall: @MainActor (SimulatorApplication, String) -> Void
+  @ObservationIgnored private let didReplace: @MainActor (SimulatorApplication, String) -> Void
   @ObservationIgnored private let didUninstall: @MainActor (String, String) -> Void
   @ObservationIgnored private let showDevice: @MainActor (SimulatorDevice) async throws -> Void
   @ObservationIgnored private let didOpen: @MainActor (String, String) -> Void
@@ -25,11 +26,13 @@ final class AppInstallationStore {
     installer: AppInstaller = AppInstaller(),
     showDevice: @escaping @MainActor (SimulatorDevice) async throws -> Void,
     didInstall: @escaping @MainActor (SimulatorApplication, String) -> Void = { _, _ in },
+    didReplace: @escaping @MainActor (SimulatorApplication, String) -> Void = { _, _ in },
     didUninstall: @escaping @MainActor (String, String) -> Void = { _, _ in },
     didOpen: @escaping @MainActor (String, String) -> Void = { _, _ in }
   ) {
     self.installer = installer
     self.didInstall = didInstall
+    self.didReplace = didReplace
     self.didUninstall = didUninstall
     self.showDevice = showDevice
     self.didOpen = didOpen
@@ -44,6 +47,17 @@ final class AppInstallationStore {
   }
 
   func install(app: CatalogApp, version: CatalogVersion, on device: SimulatorDevice) {
+    startInstallation(app: app, version: version, on: device, completion: didInstall)
+  }
+
+  func replace(app: CatalogApp, version: CatalogVersion, on device: SimulatorDevice) {
+    startInstallation(app: app, version: version, on: device, completion: didReplace)
+  }
+
+  private func startInstallation(
+    app: CatalogApp, version: CatalogVersion, on device: SimulatorDevice,
+    completion: @escaping @MainActor (SimulatorApplication, String) -> Void
+  ) {
     let key = Key(appID: app.id, deviceID: device.id)
     guard jobs[key] == nil else { return }
     let request = UUID()
@@ -63,7 +77,7 @@ final class AppInstallationStore {
             phases[key] = phase
           }
         }
-        didInstall(
+        completion(
           SimulatorApplication(
             bundleID: app.bundleID, version: version.version, isUserApplication: true),
           device.id)

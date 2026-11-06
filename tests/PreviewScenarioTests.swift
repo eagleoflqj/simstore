@@ -7,7 +7,10 @@ struct PreviewScenarioTests {
       try arguments()
       try await missingXcode()
       try await emptyInventory()
-      print("PASS: Debug preview arguments, forced missing Xcode, and empty simulator inventory.")
+      try blockedDeviceActions()
+      print(
+        "PASS: Debug preview arguments, missing Xcode, empty inventory, and an isolated incompatible device."
+      )
     } catch {
       FileHandle.standardError.write(
         Data("Preview scenario test failed: \(error.localizedDescription)\n".utf8))
@@ -20,7 +23,7 @@ struct PreviewScenarioTests {
       try require(
         try PreviewScenario.parse(args) == nil, "Normal launches must not enable previews.")
     }
-    for mode in ["no-xcode", "no-simulators"] {
+    for mode in PreviewScenario.allCases.map(\.rawValue) {
       let parsed = try PreviewScenario.parse([
         "SimStore", "-AppleLanguages", "(zh-Hans)", "--preview", mode,
       ])
@@ -84,6 +87,24 @@ struct PreviewScenarioTests {
       snapshot.deviceManager?.url.path == manager.path,
       "The empty-inventory preview must preserve Device Hub discovery.")
 
+    let incompatible = try await PreviewScenario.incompatible.discover(installedXcodeURL: nil) {
+      executable, args in
+      try require(
+        executable == "/usr/bin/xcode-select" && args == ["--print-path"],
+        "The incompatible preview must not query real simulator devices.")
+      return Data("\(developer.path)\n".utf8)
+    }
+    try require(
+      incompatible.devices == [
+        SimulatorDevice(
+          id: "00000000-0000-0000-0000-000000000001", name: "iPhone 8", runtime: "12.0",
+          state: "Booted")
+      ],
+      "The incompatible preview must provide a running old device without a local runtime.")
+    try require(
+      incompatible.deviceManager?.url.path == manager.path,
+      "The incompatible preview must retain the selected Xcode's device manager.")
+
     do {
       _ = try await PreviewScenario.noSimulators.discover(installedXcodeURL: nil) { _, _ in
         Data("/Library/Developer/CommandLineTools\n".utf8)
@@ -104,6 +125,16 @@ struct PreviewScenarioTests {
         (error as NSError).domain == "PreviewScenarioTests"
           && error.localizedDescription == "Toolchain configuration failed",
         "The original toolchain failure was not preserved.")
+    }
+  }
+
+  static func blockedDeviceActions() throws {
+    do {
+      try PreviewScenario.rejectDeviceAction()
+    } catch let error as CocoaError {
+      try require(
+        error.code == .featureUnsupported, "Device actions in the preview must fail as unsupported."
+      )
     }
   }
 

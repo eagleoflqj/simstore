@@ -36,6 +36,8 @@ jobs:
           if-no-files-found: error
       - name: Check Swift formatting
         run: xcrun swift-format lint --recursive --strict src tests
+      - name: Check catalog categories
+        run: cmake --build --preset release --target CheckCatalogCategories
       - name: Check localization catalog
         run: |
           cmake --build --preset release --target GenerateStrings

@@ -16,11 +16,6 @@ struct ContentView: View {
 
   init(
     discover: @escaping @MainActor () async throws -> SimulatorDiscovery = {
-      #if DEBUG
-        if let scenario = try PreviewScenario.parse(CommandLine.arguments) {
-          return try await scenario.discover(installedXcodeURL: ContentView.installedXcodeURL)
-        }
-      #endif
       return try await SimulatorDiscovery.scan(installedXcodeURL: ContentView.installedXcodeURL)
     },
     boot: @escaping @Sendable (String) async throws -> Void = {
@@ -34,6 +29,25 @@ struct ContentView: View {
         try await SimulatorApplications.installedApps(on: $0)
       }
   ) {
+    #if DEBUG
+      let preview = Result { try PreviewScenario.parse(CommandLine.arguments) }
+      let liveDiscover = discover
+      let discover: @MainActor () async throws -> SimulatorDiscovery = {
+        if let scenario = try preview.get() {
+          return try await scenario.discover(installedXcodeURL: Self.installedXcodeURL)
+        }
+        return try await liveDiscover()
+      }
+      var installer = installer
+      var boot = boot
+      var loadInstalledApps = loadInstalledApps
+      if case .success(.some(.incompatible)) = preview {
+        installer.download = { _, _, _ in try PreviewScenario.rejectDeviceAction() }
+        installer.command = { _, _ in try PreviewScenario.rejectDeviceAction() }
+        boot = { _ in try PreviewScenario.rejectDeviceAction() }
+        loadInstalledApps = { _ in [] }
+      }
+    #endif
     let simulators = SimulatorStore(discover: discover, boot: boot)
     _simulators = State(initialValue: simulators)
     _catalog = State(initialValue: CatalogStore(client: catalogClient))

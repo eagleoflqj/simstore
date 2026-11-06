@@ -849,6 +849,22 @@
         }
       }
     },
+    "Install anyway": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install anyway"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仍要安装"
+          }
+        }
+      }
+    },
     "Installed": {
       "localizations": {
         "en": {

@@ -52,9 +52,22 @@ struct AppInstallButton: View {
     return allowsIncompatible || version.isCompatible(with: device.runtime)
   }
 
+  private var requiresCompatibilityOverride: Bool {
+    allowsIncompatible && idleAction != .open && !version.isCompatible(with: device.runtime)
+  }
+
+  private var isPrimary: Bool { phase == nil && !requiresCompatibilityOverride }
+
+  private func title(for action: AppInstallationAction) -> String {
+    if action == idleAction, requiresCompatibilityOverride {
+      return String(localized: "Install anyway")
+    }
+    return action.title
+  }
+
   var body: some View {
     Group {
-      if phase == nil {
+      if isPrimary {
         button.buttonStyle(.borderedProminent)
       } else {
         button.buttonStyle(.bordered)
@@ -100,13 +113,13 @@ struct AppInstallButton: View {
       }
     } label: {
       StableSizeView(action, states: AppInstallationAction.allCases) { value in
-        Text(verbatim: value.title)
+        Text(verbatim: title(for: value))
       }
       .lineLimit(1)
     }
     .disabled(!enabled)
-    .keyboardShortcut(isDefaultAction && phase == nil ? .defaultAction : nil)
-    .accessibilityLabel(Text(verbatim: "\(action.title) \(app.name)"))
+    .keyboardShortcut(isDefaultAction && isPrimary ? .defaultAction : nil)
+    .accessibilityLabel(Text(verbatim: "\(title(for: action)) \(app.name)"))
     .accessibilityValue(Text(verbatim: phase?.summary(totalBytes: version.size) ?? ""))
     .help(Text(verbatim: isInstalled == true ? device.name : version.minimumOSLabel))
   }

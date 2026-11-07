@@ -9,6 +9,7 @@ final class InstalledAppsStore {
   var bundleIDs: Set<String>? { applications.map { Set($0.map(\.bundleID)) } }
   private(set) var isLoading = false
   private(set) var error: String?
+  private var hasCurrentInventory = false
   private var recentInstallations: Set<String> = []
   private var recentReplacements: Set<String> = []
 
@@ -120,6 +121,11 @@ final class InstalledAppsStore {
     return bundleIDs.contains { $0.caseInsensitiveCompare(bundleID) == .orderedSame }
   }
 
+  func canInstall(on device: SimulatorDevice) -> Bool {
+    device.state == "Booted" && deviceID == device.id && hasCurrentInventory
+      && applications != nil
+  }
+
   func refresh(for device: SimulatorDevice) async {
     guard !Task.isCancelled else { return }
     if let pending = request, pending.device == device {
@@ -131,13 +137,14 @@ final class InstalledAppsStore {
     }
     let pending = Request(device: device)
     if selectedDevice?.id != device.id { clearRecentInstallations() }
+    if selectedDevice != device { applications = nil }
     request = pending
     selectedDevice = device
     deviceID = device.id
     installedDuringRefresh = []
     removedDuringRefresh = []
-    applications = nil
     error = nil
+    hasCurrentInventory = false
     isLoading = true
     let operation = operationMonitor?.begin(on: device)
     defer {
@@ -157,10 +164,12 @@ final class InstalledAppsStore {
         applications =
           installed.filter { !replaced.contains($0.bundleID.lowercased()) }
           + installedDuringRefresh
+        hasCurrentInventory = true
       }
     } catch is CancellationError {
     } catch {
       if request === pending && !Task.isCancelled {
+        applications = nil
         self.error = error.localizedDescription
       }
     }

@@ -49,6 +49,7 @@ struct AppInstallButton: View {
     if let phase { return phase.canCancel }
     guard device.state == "Booted", let isInstalled else { return false }
     if idleAction == .open { return isInstalled }
+    guard installedApps.canInstall(on: device) else { return false }
     return allowsIncompatible || version.isCompatible(with: device.runtime)
   }
 
@@ -78,6 +79,13 @@ struct AppInstallButton: View {
     ) { request in
       Button("Cancel", role: .cancel) {}
       Button(role: .destructive) {
+        guard installedApps.canInstall(on: request.device),
+          AppInstallationAction.forVersion(
+            request.version,
+            installed: installedApps.application(
+              bundleID: request.app.bundleID, deviceID: request.device.id),
+            allowsChanges: true) == request.action
+        else { return }
         store.replace(app: request.app, version: request.version, on: request.device)
       } label: {
         Text(verbatim: request.action.title)
@@ -93,10 +101,22 @@ struct AppInstallButton: View {
         )
       }
     }
+    .onChange(of: installedApps.canInstall(on: device)) { _, canInstall in
+      if !canInstall { dismissVersionChange() }
+    }
+    .onChange(of: installedApps.application(bundleID: app.bundleID, deviceID: device.id)) { _, _ in
+      dismissVersionChange()
+    }
+  }
+
+  private func dismissVersionChange() {
+    showsConfirmation = false
+    pendingVersionChange = nil
   }
 
   private var button: some View {
     Button {
+      guard enabled else { return }
       switch action {
       case .install: store.install(app: app, version: version, on: device)
       case .update, .downgrade, .replace:

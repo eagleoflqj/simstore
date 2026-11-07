@@ -60,9 +60,13 @@ struct InstalledAppsStoreTests {
     try require(
       store.discoverableApps(in: catalog, for: "B") == nil,
       "A snapshot may only filter its own simulator.")
+    let previous = store.applications
     let failed = Task { await store.refresh(for: selected) }
     try await eventually { await probe.calls.count == 2 }
-    try require(store.bundleIDs == nil, "Refreshing must clear a snapshot that may be stale.")
+    try require(
+      store.applications == previous && store.isLoading
+        && store.discoverableApps(in: catalog, for: "A")?.map(\.id) == ["available"],
+      "Keep the current collection visible while refreshing the same simulator.")
     await probe.finish(1, with: .failure(failure("Cannot read installed apps")))
     await failed.value
     try require(
@@ -78,6 +82,9 @@ struct InstalledAppsStoreTests {
       "A confirmed empty installation set exposes the full catalog and clears the prior error.")
     let externalInstall = Task { await store.refresh(for: selected) }
     try await eventually { await probe.calls.count == 4 }
+    try require(
+      store.bundleIDs == [] && store.isLoading,
+      "A confirmed empty collection must remain visible during a background refresh.")
     await probe.finish(3, with: .success(["io.example.Available"]))
     await externalInstall.value
     try require(
@@ -162,8 +169,9 @@ struct InstalledAppsStoreTests {
     await probe.finish(2, with: .success(["io.example.Cancelled"]))
     await canceled.value
     try require(
-      !store.isLoading && store.bundleIDs == nil && store.error == nil,
-      "Canceling the only caller must finish silently and leave the installation state unknown.")
+      !store.isLoading && store.bundleIDs == ["io.example.Active"] && store.error == nil,
+      "A canceled refresh must preserve the last confirmed inventory, without publishing its response."
+    )
     let retry = Task { await store.refresh(for: selected) }
     try await eventually { await probe.calls.count == 4 }
     await probe.finish(3, with: .success([]))
@@ -185,6 +193,13 @@ struct InstalledAppsStoreTests {
     try require(
       store.bundleIDs == ["io.example.New"],
       "A device state change must query afresh rather than join an older shutdown query.")
+    let shuttingDown = Task { await store.refresh(for: device("A", state: "Shutting Down")) }
+    try await eventually { await probe.calls.count == 3 }
+    try require(
+      store.bundleIDs == nil && store.isLoading,
+      "A power-state change must clear the previous running-device inventory.")
+    await probe.finish(2, with: .failure(failure("Simulator is shutting down")))
+    await shuttingDown.value
   }
 
   static func device(_ id: String, state: String = "Booted") -> SimulatorDevice {

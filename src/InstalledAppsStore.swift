@@ -131,12 +131,12 @@ final class InstalledAppsStore {
     }
     let pending = Request(device: device)
     if selectedDevice?.id != device.id { clearRecentInstallations() }
+    if selectedDevice != device { applications = nil }
     request = pending
     selectedDevice = device
     deviceID = device.id
     installedDuringRefresh = []
     removedDuringRefresh = []
-    applications = nil
     error = nil
     isLoading = true
     let operation = operationMonitor?.begin(on: device)
@@ -161,6 +161,7 @@ final class InstalledAppsStore {
     } catch is CancellationError {
     } catch {
       if request === pending && !Task.isCancelled {
+        applications = nil
         self.error = error.localizedDescription
       }
     }

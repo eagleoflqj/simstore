@@ -29,9 +29,8 @@ jobs:
         run: brew install librsvg
       - name: Check Python lint
         run: |
-          python3 -m venv build/python-lint
-          build/python-lint/bin/python -m pip install --index-url https://pypi.org/simple ruff==0.16.0
-          build/python-lint/bin/ruff check scripts tests
+          python3 -m pip install ruff==0.16.0
+          python3 -m ruff check scripts tests
       - name: Build
         run: |
           cmake --preset release

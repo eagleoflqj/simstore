@@ -15,6 +15,7 @@ struct InstalledAppsStoreTests {
       try await installedVersionsAndMatching()
       try await recordingUninstallationDuringRefresh()
       try await updateFilteringAndRetention()
+      try await recoveryDuringRefresh()
       print(
         "PASS: per-device installed apps, filtering, stale responses, errors, and cancellation.")
     } catch {
@@ -22,6 +23,22 @@ struct InstalledAppsStoreTests {
         Data("Installed apps store test failed: \(error.localizedDescription)\n".utf8))
       exit(EXIT_FAILURE)
     }
+  }
+
+  static func recoveryDuringRefresh() async throws {
+    let probe = InventoryProbe()
+    let monitor = SimulatorOperationMonitor(wait: {})
+    let store = InstalledAppsStore(
+      load: { try await probe.load($0) }, operationMonitor: monitor)
+    let selected = device("A")
+    let refresh = Task { await store.refresh(for: selected) }
+    try await eventually { await probe.calls.count == 1 }
+    try await eventually { monitor.prompt?.device.id == selected.id }
+    await probe.finish(0, with: .success(["io.example.Installed"]))
+    await refresh.value
+    try require(
+      monitor.prompt == nil && !store.isLoading && store.bundleIDs == ["io.example.Installed"],
+      "A recovered app-list query must clear its prompt and publish the real inventory.")
   }
 
   static func filteringAndRefresh() async throws {

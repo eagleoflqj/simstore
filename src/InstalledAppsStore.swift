@@ -15,6 +15,8 @@ final class InstalledAppsStore {
   @ObservationIgnored
   private let load: @Sendable (SimulatorDevice) async throws -> [SimulatorApplication]
   @ObservationIgnored
+  private let operationMonitor: SimulatorOperationMonitor?
+  @ObservationIgnored
   private var selectedDevice: SimulatorDevice?
   @ObservationIgnored
   private var request: Request?
@@ -26,9 +28,10 @@ final class InstalledAppsStore {
   init(
     load: @escaping @Sendable (SimulatorDevice) async throws -> [SimulatorApplication] = {
       try await SimulatorApplications.installedApps(on: $0)
-    }
+    }, operationMonitor: SimulatorOperationMonitor? = nil
   ) {
     self.load = load
+    self.operationMonitor = operationMonitor
   }
 
   func installedApps(in catalog: AppCatalog, for deviceID: String) -> [CatalogApp]? {
@@ -136,7 +139,9 @@ final class InstalledAppsStore {
     applications = nil
     error = nil
     isLoading = true
+    let operation = operationMonitor?.begin(on: device)
     defer {
+      if let operation { operationMonitor?.end(operation) }
       if request === pending {
         request = nil
         isLoading = false

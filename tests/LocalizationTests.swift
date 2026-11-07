@@ -38,6 +38,11 @@ struct LocalizationTests {
         ("Starting…", "Starting…", "正在启动…"),
         ("Shut Down", "Shut Down", "关机"),
         ("Shutting Down…", "Shutting Down…", "正在关机…"),
+        ("Keep Waiting", "Keep Waiting", "继续等待"),
+        (
+          "Operation Is Taking Longer Than Expected", "Operation Is Taking Longer Than Expected",
+          "操作耗时较长"
+        ),
         ("Couldn’t Shut Down Simulator", "Couldn’t Shut Down Simulator", "无法关闭模拟器"),
         ("Booted", "Booted", "已启动"),
         ("Shutdown", "Shutdown", "已关机"),
@@ -104,6 +109,22 @@ struct LocalizationTests {
         String(localized: "\(tool) couldn’t be opened. \(detail)", bundle: bundle, locale: locale),
         english ? "Device Hub couldn’t be opened. \(detail)" : "无法打开 Device Hub。\(detail)")
       let deviceName = "iPhone 测试"
+      try expect(
+        String(
+          localized:
+            "Couldn’t start shutting down \(deviceName). Check its current state and try again.",
+          bundle: bundle, locale: locale),
+        english
+          ? "Couldn’t start shutting down iPhone 测试. Check its current state and try again."
+          : "无法开始关闭 iPhone 测试。请检查其当前状态后重试。")
+      try expect(
+        String(
+          localized:
+            "An app operation on \(deviceName) hasn’t finished. Keep waiting, or shut down this simulator to stop pending operations. Shutting down closes all of its apps.",
+          bundle: bundle, locale: locale),
+        english
+          ? "An app operation on iPhone 测试 hasn’t finished. Keep waiting, or shut down this simulator to stop pending operations. Shutting down closes all of its apps."
+          : "iPhone 测试 上的应用操作尚未完成。你可以继续等待，或关闭此模拟器以停止待处理的操作。关机会关闭其中的所有应用。")
       try expect(
         String(
           localized: "Couldn’t start \(deviceName).\n\(detail)", bundle: bundle, locale: locale),

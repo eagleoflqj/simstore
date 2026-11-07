@@ -15,6 +15,8 @@ final class AppInstallationStore {
   private(set) var openedApp: Key?
   private(set) var uninstalledApp: Key?
   @ObservationIgnored private let installer: AppInstaller
+  @ObservationIgnored private let operationMonitor: SimulatorOperationMonitor?
+  @ObservationIgnored private var monitoredOperations: [Key: UUID] = [:]
   @ObservationIgnored private let didInstall: @MainActor (SimulatorApplication, String) -> Void
   @ObservationIgnored private let didReplace: @MainActor (SimulatorApplication, String) -> Void
   @ObservationIgnored private let didUninstall: @MainActor (String, String) -> Void
@@ -30,7 +32,8 @@ final class AppInstallationStore {
     didInstall: @escaping @MainActor (SimulatorApplication, String) -> Void = { _, _ in },
     didReplace: @escaping @MainActor (SimulatorApplication, String) -> Void = { _, _ in },
     didUninstall: @escaping @MainActor (String, String) -> Void = { _, _ in },
-    didOpen: @escaping @MainActor (String, String) -> Void = { _, _ in }
+    didOpen: @escaping @MainActor (String, String) -> Void = { _, _ in },
+    operationMonitor: SimulatorOperationMonitor? = nil
   ) {
     self.installer = installer
     self.didInstall = didInstall
@@ -38,6 +41,7 @@ final class AppInstallationStore {
     self.didUninstall = didUninstall
     self.showDevice = showDevice
     self.didOpen = didOpen
+    self.operationMonitor = operationMonitor
   }
 
   func phase(appID: String, deviceID: String) -> AppInstallationPhase? {
@@ -87,6 +91,7 @@ final class AppInstallationStore {
             return
           } else {
             phases[key] = phase
+            if phase == .installing { monitor(key, on: device) }
           }
         }
         completion(
@@ -113,6 +118,7 @@ final class AppInstallationStore {
     uninstalledApp = nil
     errors[key] = nil
     phases[key] = .uninstalling
+    monitor(key, on: device)
     jobs[key] = Task {
       defer { finish(key) }
       do {
@@ -150,6 +156,7 @@ final class AppInstallationStore {
     openedApp = nil
     errors[key] = nil
     phases[key] = .opening
+    monitor(key, on: device)
     jobs[key] = Task {
       defer { finish(key) }
       do {
@@ -164,9 +171,17 @@ final class AppInstallationStore {
   }
 
   private func finish(_ key: Key) {
+    if let operation = monitoredOperations.removeValue(forKey: key) {
+      operationMonitor?.end(operation)
+    }
     jobs[key] = nil
     requests[key] = nil
     phases[key] = nil
+  }
+
+  private func monitor(_ key: Key, on device: SimulatorDevice) {
+    guard monitoredOperations[key] == nil else { return }
+    monitoredOperations[key] = operationMonitor?.begin(on: device)
   }
 
   func updateBatch(deviceID: String) -> AppUpdateBatch? {

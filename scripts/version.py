@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict, dataclass
 import json
-from pathlib import Path
 import plistlib
 import re
 import subprocess
 import sys
+from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Any
-
 
 VERSION = re.compile(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)')
 
@@ -26,7 +25,9 @@ def version_key(value: str) -> tuple[int, int, int]:
 
 
 def git(source: Path, *arguments: str) -> str:
-    result = subprocess.run(['git', '-C', str(source), *arguments], capture_output=True, text=True)
+    result = subprocess.run(
+        ['git', '-C', str(source), *arguments], check=False, capture_output=True, text=True,
+    )
     if result.returncode:
         raise VersionError(result.stderr.strip() or 'Git command failed')
     return result.stdout.strip()

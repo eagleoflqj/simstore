@@ -55,10 +55,14 @@ add_executable(SimStore MACOSX_BUNDLE
     SelfUpdateStore.swift
     SelfUpdateView.swift
     SelfUpdateController.swift
+    SelfUninstallation.swift
+    SelfUninstaller.swift
+    SelfUninstallController.swift
 )
 
 add_executable(SimStoreUpdater
     SelfUpdateHelper.swift
+    SelfUninstallation.swift
     SelfUpdateInstallation.swift
     SelfUpdateRelease.swift
     SelfUpdatePackage.swift

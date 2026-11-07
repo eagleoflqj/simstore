@@ -4,6 +4,27 @@ import AppKit
 struct SelfUpdateHelper {
   @MainActor
   static func main() async {
+    if CommandLine.arguments.count == 3, CommandLine.arguments[1] == "--uninstall" {
+      let directory = URL(fileURLWithPath: CommandLine.arguments[2], isDirectory: true)
+        .standardizedFileURL
+      do {
+        try SelfUninstallation.run(from: directory)
+      } catch {
+        var message = error.localizedDescription
+        if let uninstallError = error as? SelfUninstallError,
+          let data = try? Data(contentsOf: directory.appending(component: "request.json")),
+          let request = try? JSONDecoder().decode(SelfUninstallRequest.self, from: data)
+        {
+          message = uninstallError.message(
+            in: SelfUpdateInstallation.localizationBundle(
+              application: request.application, language: request.language))
+        }
+        try? JSONEncoder().encode(message).write(
+          to: directory.appending(component: "error.json"), options: .atomic)
+        exit(EXIT_FAILURE)
+      }
+      return
+    }
     guard CommandLine.arguments.count == 2 else { exit(EXIT_FAILURE) }
     let directory = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
       .standardizedFileURL

@@ -62,6 +62,29 @@ struct LocalizationTests {
         ("Uninstall", "Uninstall", "卸载"),
         ("Uninstalling…", "Uninstalling…", "正在卸载…"),
         ("About SimStore", "About SimStore", "关于 SimStore"),
+        ("Uninstall SimStore…", "Uninstall SimStore…", "卸载 SimStore…"),
+        ("Uninstall SimStore?", "Uninstall SimStore?", "卸载 SimStore？"),
+        ("Couldn’t Uninstall SimStore", "Couldn’t Uninstall SimStore", "无法卸载 SimStore"),
+        (
+          "SimStore, its caches, settings, and temporary files will be permanently deleted. SimStore will then quit.",
+          "SimStore, its caches, settings, and temporary files will be permanently deleted. SimStore will then quit.",
+          "将永久删除 SimStore 及其缓存、设置和临时文件。随后 SimStore 将退出。"
+        ),
+        (
+          "The running SimStore app could not be verified. Nothing was uninstalled.",
+          "The running SimStore app could not be verified. Nothing was uninstalled.",
+          "无法验证当前运行的 SimStore，未执行卸载。"
+        ),
+        (
+          "Move SimStore to a writable folder before uninstalling it.",
+          "Move SimStore to a writable folder before uninstalling it.",
+          "请先将 SimStore 移到可写入的文件夹，再卸载。"
+        ),
+        (
+          "The uninstall assistant could not finish. Try again.",
+          "The uninstall assistant could not finish. Try again.",
+          "卸载助手未能完成操作，请重试。"
+        ),
         ("Check for Updates…", "Check for Updates…", "检查更新…"),
         ("Update and Restart", "Update and Restart", "更新并重新启动"),
         ("Install Nightly and Restart", "Install Nightly and Restart", "安装每夜构建并重新启动"),

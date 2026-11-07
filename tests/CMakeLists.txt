@@ -239,3 +239,14 @@ add_test(NAME update-assistant-metadata COMMAND "${CMAKE_COMMAND}"
     "-DEXPECTED_MIN_OS=${CMAKE_OSX_DEPLOYMENT_TARGET}"
     -P "${CMAKE_CURRENT_SOURCE_DIR}/BundleMetadataTest.cmake"
 )
+
+add_executable(SimStoreSelfUninstallTest SelfUninstallTests.swift
+    "${PROJECT_SOURCE_DIR}/src/SelfUninstallation.swift"
+    "${PROJECT_SOURCE_DIR}/src/SelfUninstaller.swift"
+    "${PROJECT_SOURCE_DIR}/src/SelfUninstallController.swift"
+    "${PROJECT_SOURCE_DIR}/src/AppConfiguration.swift"
+)
+add_dependencies(SimStoreSelfUninstallTest SimStore)
+target_compile_options(SimStoreSelfUninstallTest PRIVATE -parse-as-library)
+add_test(NAME self-uninstall COMMAND SimStoreSelfUninstallTest "$<TARGET_BUNDLE_DIR:SimStore>")
+set_tests_properties(self-uninstall PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)

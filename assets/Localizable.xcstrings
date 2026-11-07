@@ -769,6 +769,22 @@
         }
       }
     },
+    "Couldn’t Uninstall SimStore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t Uninstall SimStore"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法卸载 SimStore"
+          }
+        }
+      }
+    },
     "Couldn’t Update SimStore": {
       "localizations": {
         "en": {
@@ -1373,6 +1389,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "请先将 SimStore 移至可写入的“应用程序”文件夹，再进行更新。"
+          }
+        }
+      }
+    },
+    "Move SimStore to a writable folder before uninstalling it.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move SimStore to a writable folder before uninstalling it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先将 SimStore 移到可写入的文件夹，再卸载。"
           }
         }
       }
@@ -2033,6 +2065,22 @@
         }
       }
     },
+    "SimStore, its caches, settings, and temporary files will be permanently deleted. SimStore will then quit.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SimStore, its caches, settings, and temporary files will be permanently deleted. SimStore will then quit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将永久删除 SimStore 及其缓存、设置和临时文件。随后 SimStore 将退出。"
+          }
+        }
+      }
+    },
     "Simulator": {
       "localizations": {
         "en": {
@@ -2465,6 +2513,22 @@
         }
       }
     },
+    "The running SimStore app could not be verified. Nothing was uninstalled.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The running SimStore app could not be verified. Nothing was uninstalled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法验证当前运行的 SimStore，未执行卸载。"
+          }
+        }
+      }
+    },
     "The simulator application could not be found. Check your Xcode installation.": {
       "localizations": {
         "en": {
@@ -2493,6 +2557,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "模拟器返回了无效的应用清单。"
+          }
+        }
+      }
+    },
+    "The uninstall assistant could not finish. Try again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The uninstall assistant could not finish. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卸载助手未能完成操作，请重试。"
           }
         }
       }
@@ -2653,6 +2733,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "卸载 %@？"
+          }
+        }
+      }
+    },
+    "Uninstall SimStore?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uninstall SimStore?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卸载 SimStore？"
+          }
+        }
+      }
+    },
+    "Uninstall SimStore…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uninstall SimStore…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卸载 SimStore…"
           }
         }
       }

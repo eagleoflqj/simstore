@@ -14,6 +14,8 @@ struct SimulatorDevice: Identifiable, Equatable, Sendable {
 
   var canStart: Bool { state == "Shutdown" || state == "Booting" }
 
+  var canShutdown: Bool { state == "Booted" }
+
   var isTransitioning: Bool { state == "Booting" || state == "Shutting Down" }
 }
 

@@ -36,6 +36,14 @@ struct LocalizationTests {
         ("Updates", "Updates", "更新"),
         ("Start Simulator", "Start Simulator", "启动模拟器"),
         ("Starting…", "Starting…", "正在启动…"),
+        ("Shut Down", "Shut Down", "关机"),
+        ("Shutting Down…", "Shutting Down…", "正在关机…"),
+        ("Couldn’t Shut Down Simulator", "Couldn’t Shut Down Simulator", "无法关闭模拟器"),
+        (
+          "Finish or cancel app operations before shutting down this simulator.",
+          "Finish or cancel app operations before shutting down this simulator.",
+          "请先完成或取消应用操作，再关闭此模拟器。"
+        ),
         ("Booted", "Booted", "已启动"),
         ("Shutdown", "Shutdown", "已关机"),
         ("Booting", "Booting", "正在启动"),
@@ -104,6 +112,10 @@ struct LocalizationTests {
         String(
           localized: "Couldn’t start \(deviceName).\n\(detail)", bundle: bundle, locale: locale),
         english ? "Couldn’t start \(deviceName).\n\(detail)" : "无法启动 \(deviceName)。\n\(detail)")
+      try expect(
+        String(
+          localized: "Couldn’t shut down \(deviceName).\n\(detail)", bundle: bundle, locale: locale),
+        english ? "Couldn’t shut down \(deviceName).\n\(detail)" : "无法关闭 \(deviceName)。\n\(detail)")
       try expect(
         String(
           localized:

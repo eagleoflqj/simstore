@@ -8,7 +8,12 @@ struct InstalledAppsStatusView: View {
 
   var body: some View {
     Group {
-      if device.state != "Booted" {
+      if device.isTransitioning {
+        VStack(spacing: 14) {
+          ProgressView()
+          Text(verbatim: device.stateLabel()).foregroundStyle(.secondary)
+        }
+      } else if device.state != "Booted" {
         ContentUnavailableView {
           Label("Simulator Not Running", systemImage: "power")
         } description: {

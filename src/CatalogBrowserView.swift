@@ -7,9 +7,9 @@ struct CatalogBrowserView: View {
   let installedApps: InstalledAppsStore
   let installations: AppInstallationStore
   let device: SimulatorDevice
-  let isStarting: Bool
   let deviceManagerName: String?
   let startSimulator: () -> Void
+  let shutdownSimulator: () -> Void
   let openDeviceManager: () -> Void
 
   @State private var query = ""
@@ -115,8 +115,9 @@ struct CatalogBrowserView: View {
     }
     .popover(isPresented: $showsSimulator) {
       SimulatorDetailView(
-        device: device, isStarting: isStarting, deviceManagerName: deviceManagerName,
-        start: startSimulator, openDeviceManager: openDeviceManager
+        device: device, hasAppOperations: installations.hasOperations(deviceID: device.id),
+        deviceManagerName: deviceManagerName,
+        start: startSimulator, shutdown: shutdownSimulator, openDeviceManager: openDeviceManager
       )
       .frame(width: 480)
     }
@@ -144,14 +145,15 @@ struct CatalogBrowserView: View {
         .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 3) {
         Text(verbatim: device.name).fontWeight(.medium)
-        Text(verbatim: "\(device.runtimeLabel) · \(device.stateLabel(isStarting: isStarting))")
+        Text(verbatim: "\(device.runtimeLabel) · \(device.stateLabel())")
           .font(.system(size: 11)).foregroundStyle(.secondary)
       }
       .lineLimit(1)
       Spacer(minLength: 12)
-      if device.canStart || isStarting {
-        SimulatorStartButton(
-          isStarting: isStarting || device.state == "Booting", action: startSimulator)
+      if device.canStart || device.canShutdown || device.isTransitioning {
+        SimulatorPowerButton(
+          device: device, hasAppOperations: installations.hasOperations(deviceID: device.id),
+          start: startSimulator, shutdown: shutdownSimulator)
       }
       Button {
         showsSimulator = true

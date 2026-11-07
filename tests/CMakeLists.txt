@@ -108,9 +108,10 @@ target_compile_options(SimStoreInstalledAppsTest PRIVATE -parse-as-library)
 add_test(NAME installed-apps COMMAND SimStoreInstalledAppsTest)
 set_tests_properties(installed-apps PROPERTIES TIMEOUT 15)
 
-add_executable(SimStoreStoreTest SimulatorStoreTests.swift
+add_executable(SimStoreStoreTest SimulatorStoreTests.swift SimulatorShutdownTests.swift
     "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorStore.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorControl.swift"
     "${PROJECT_SOURCE_DIR}/src/Command.swift"
 )
 target_compile_options(SimStoreStoreTest PRIVATE -parse-as-library)
@@ -128,6 +129,16 @@ add_dependencies(SimStoreStableSizeTest SimStore)
 target_compile_options(SimStoreStableSizeTest PRIVATE -parse-as-library)
 add_test(NAME stable-button-size COMMAND SimStoreStableSizeTest "$<TARGET_BUNDLE_DIR:SimStore>")
 set_tests_properties(stable-button-size PROPERTIES TIMEOUT 15 RUN_SERIAL TRUE)
+
+add_executable(SimStorePowerButtonTest SimulatorPowerButtonTests.swift
+    "${PROJECT_SOURCE_DIR}/src/SimulatorPowerButton.swift"
+    "${PROJECT_SOURCE_DIR}/src/StableSizeView.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/Command.swift"
+)
+target_compile_options(SimStorePowerButtonTest PRIVATE -parse-as-library)
+add_test(NAME simulator-power-button COMMAND SimStorePowerButtonTest)
+set_tests_properties(simulator-power-button PROPERTIES TIMEOUT 15 RUN_SERIAL TRUE)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_executable(SimStorePreviewScenarioTest PreviewScenarioTests.swift

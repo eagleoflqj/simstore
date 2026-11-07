@@ -137,6 +137,13 @@ final class AppInstallationStore {
     jobs[key]?.cancel()
   }
 
+  func cancelOperations(deviceID: String) {
+    cancelAllUpdates(deviceID: deviceID)
+    for key in phases.keys.filter({ $0.deviceID == deviceID }) {
+      cancel(appID: key.appID, deviceID: deviceID)
+    }
+  }
+
   func open(app: CatalogApp, on device: SimulatorDevice) {
     let key = Key(appID: app.id, deviceID: device.id)
     guard jobs[key] == nil, phases[key] == nil else { return }

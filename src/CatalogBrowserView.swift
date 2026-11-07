@@ -115,7 +115,7 @@ struct CatalogBrowserView: View {
     }
     .popover(isPresented: $showsSimulator) {
       SimulatorDetailView(
-        device: device, hasAppOperations: installations.hasOperations(deviceID: device.id),
+        device: device,
         deviceManagerName: deviceManagerName,
         start: startSimulator, shutdown: shutdownSimulator, openDeviceManager: openDeviceManager
       )
@@ -152,7 +152,7 @@ struct CatalogBrowserView: View {
       Spacer(minLength: 12)
       if device.canStart || device.canShutdown || device.isTransitioning {
         SimulatorPowerButton(
-          device: device, hasAppOperations: installations.hasOperations(deviceID: device.id),
+          device: device,
           start: startSimulator, shutdown: shutdownSimulator)
       }
       Button {

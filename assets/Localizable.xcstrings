@@ -961,6 +961,22 @@
         }
       }
     },
+    "Email": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电子邮件"
+          }
+        }
+      }
+    },
     "Every app in the catalog is already installed on this simulator.": {
       "localizations": {
         "en": {
@@ -989,22 +1005,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "更新失败的应用"
-          }
-        }
-      }
-    },
-    "Finish or cancel app operations before shutting down this simulator.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Finish or cancel app operations before shutting down this simulator."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请先完成或取消应用操作，再关闭此模拟器。"
           }
         }
       }

@@ -39,11 +39,6 @@ struct LocalizationTests {
         ("Shut Down", "Shut Down", "关机"),
         ("Shutting Down…", "Shutting Down…", "正在关机…"),
         ("Couldn’t Shut Down Simulator", "Couldn’t Shut Down Simulator", "无法关闭模拟器"),
-        (
-          "Finish or cancel app operations before shutting down this simulator.",
-          "Finish or cancel app operations before shutting down this simulator.",
-          "请先完成或取消应用操作，再关闭此模拟器。"
-        ),
         ("Booted", "Booted", "已启动"),
         ("Shutdown", "Shutdown", "已关机"),
         ("Booting", "Booting", "正在启动"),
@@ -52,6 +47,7 @@ struct LocalizationTests {
         ("Search apps", "Search apps", "搜索应用"),
         ("Refresh Catalog", "Refresh Catalog", "刷新目录"),
         ("Cloud", "Cloud", "云服务"),
+        ("Email", "Email", "电子邮件"),
         ("Security", "Security", "安全"),
         ("Catalog Unavailable", "Catalog Unavailable", "无法获取应用目录"),
         ("License", "License", "许可证"),

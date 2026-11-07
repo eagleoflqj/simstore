@@ -258,13 +258,14 @@ struct ContentView: View {
 
   private func shutdownSimulator() {
     guard let id = simulators.selectedDeviceID else { return }
-    shutdownSimulator(id)
+    _ = shutdownSimulator(id)
   }
 
-  private func shutdownSimulator(_ id: String) {
-    guard simulators.shutdownDevice(id) != nil else { return }
+  private func shutdownSimulator(_ id: String) -> Bool {
+    guard simulators.shutdownDevice(id) != nil else { return false }
     operationMonitor.stop(deviceID: id)
     installations.cancelOperations(deviceID: id)
+    return true
   }
 
   private var shouldMonitorState: Bool {

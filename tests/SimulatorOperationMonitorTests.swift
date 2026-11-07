@@ -11,6 +11,7 @@ struct SimulatorOperationMonitorTests {
       try await powerStateChanges()
       try await failedScanBeforeTimeout()
       try await nativeAlertActions()
+      try await shutdownAfterDiscoveryFailure()
       print(
         "PASS: stalled operations, recovery prompts, waiting, completion, and exact shutdown targets."
       )
@@ -111,7 +112,13 @@ struct SimulatorOperationMonitorTests {
     let host = NSHostingView(
       rootView: Text("Simulator recovery test")
         .frame(width: 600, height: 240)
-        .modifier(SimulatorRecoveryAlert(monitor: monitor, shutdown: { shutdowns.append($0) })))
+        .modifier(
+          SimulatorRecoveryAlert(
+            monitor: monitor,
+            shutdown: {
+              shutdowns.append($0)
+              return true
+            })))
     let window = NSWindow(
       contentRect: NSRect(x: 200, y: 200, width: 600, height: 240),
       styleMask: [.titled, .closable], backing: .buffered, defer: false)
@@ -170,6 +177,66 @@ struct SimulatorOperationMonitorTests {
     window.endSheet(details)
     details.orderOut(nil)
     details.close()
+  }
+
+  private static func shutdownAfterDiscoveryFailure() async throws {
+    @MainActor
+    final class DiscoveryState {
+      var shouldFail = false
+      var shutdownCalls: [String] = []
+    }
+    let state = DiscoveryState()
+    let target = device("A")
+    let simulators = SimulatorStore(
+      discover: {
+        if state.shouldFail { throw failure("Temporary discovery failure") }
+        return SimulatorDiscovery(
+          developerDirectory: URL(fileURLWithPath: "/Xcode.app/Contents/Developer"),
+          devices: [target])
+      },
+      shutdown: { id in await MainActor.run { state.shutdownCalls.append(id) } },
+      boot: { _ in })
+    await simulators.refresh()
+    let monitor = SimulatorOperationMonitor(wait: {})
+    let host = NSHostingView(
+      rootView: Text("Recovery during failed discovery")
+        .frame(width: 600, height: 240)
+        .modifier(
+          SimulatorRecoveryAlert(
+            monitor: monitor,
+            shutdown: { id in
+              guard simulators.shutdownDevice(id) != nil else { return false }
+              monitor.stop(deviceID: id)
+              return true
+            })))
+    let window = NSWindow(
+      contentRect: NSRect(x: 200, y: 200, width: 600, height: 240),
+      styleMask: [.titled, .closable], backing: .buffered, defer: false)
+    window.isReleasedWhenClosed = false
+    window.contentView = host
+    window.makeKeyAndOrderFront(nil)
+    defer { window.close() }
+    let operation = monitor.begin(on: target)
+    defer { monitor.end(operation) }
+    try await eventually { nativeButton("Shut Down") != nil }
+    state.shouldFail = true
+    await simulators.refresh()
+    monitor.synchronize(with: simulators.discovery?.devices)
+    let original = monitor.prompt
+    nativeButton("Shut Down")!.performClick(nil)
+    try await eventually { nativeTextContains("Couldn’t Shut Down Simulator") }
+    try require(
+      state.shutdownCalls.isEmpty && monitor.prompt == original,
+      "A rejected request must show feedback and preserve recovery without muting the device.")
+    try require(
+      visibleButtonTitles() == ["Keep Waiting", "Shut Down"],
+      "The failure prompt must retain both waiting and retry actions.")
+    state.shouldFail = false
+    await simulators.refresh()
+    nativeButton("Shut Down")!.performClick(nil)
+    try await eventually { state.shutdownCalls == [target.id] }
+    try await eventually { nativeButton("Shut Down") == nil }
+    try require(monitor.prompt == nil, "An accepted retry can dismiss the recovery prompt.")
   }
 
   private static func nativeTextContains(_ text: String) -> Bool {

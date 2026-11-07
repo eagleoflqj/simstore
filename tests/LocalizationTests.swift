@@ -112,6 +112,14 @@ struct LocalizationTests {
       try expect(
         String(
           localized:
+            "Couldn’t start shutting down \(deviceName). Check its current state and try again.",
+          bundle: bundle, locale: locale),
+        english
+          ? "Couldn’t start shutting down iPhone 测试. Check its current state and try again."
+          : "无法开始关闭 iPhone 测试。请检查其当前状态后重试。")
+      try expect(
+        String(
+          localized:
             "An app operation on \(deviceName) hasn’t finished. Keep waiting, or shut down this simulator to stop pending operations. Shutting down closes all of its apps.",
           bundle: bundle, locale: locale),
         english

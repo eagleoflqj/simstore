@@ -833,6 +833,22 @@
         }
       }
     },
+    "Couldn’t start shutting down %@. Check its current state and try again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t start shutting down %@. Check its current state and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法开始关闭 %@。请检查其当前状态后重试。"
+          }
+        }
+      }
+    },
     "Create an iPhone or iPad simulator in %@.\nThen come back to find your next favorite app.": {
       "localizations": {
         "en": {

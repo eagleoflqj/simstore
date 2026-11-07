@@ -116,6 +116,8 @@ add_executable(SimStoreOperationMonitorTest SimulatorOperationMonitorTests.swift
     "${PROJECT_SOURCE_DIR}/src/SimulatorOperationMonitor.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorRecoveryAlert.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorStore.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorControl.swift"
     "${PROJECT_SOURCE_DIR}/src/Command.swift"
 )
 target_compile_options(SimStoreOperationMonitorTest PRIVATE -parse-as-library)

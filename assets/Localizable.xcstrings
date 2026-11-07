@@ -209,6 +209,22 @@
         }
       }
     },
+    "An app operation on %@ hasn’t finished. Keep waiting, or shut down this simulator to stop pending operations. Shutting down closes all of its apps.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An app operation on %@ hasn’t finished. Keep waiting, or shut down this simulator to stop pending operations. Shutting down closes all of its apps."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 上的应用操作尚未完成。你可以继续等待，或关闭此模拟器以停止待处理的操作。关机会关闭其中的所有应用。"
+          }
+        }
+      }
+    },
     "App Repository": {
       "localizations": {
         "en": {
@@ -1201,6 +1217,22 @@
         }
       }
     },
+    "Keep Waiting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep Waiting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续等待"
+          }
+        }
+      }
+    },
     "License": {
       "localizations": {
         "en": {
@@ -1613,6 +1645,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在打开…"
+          }
+        }
+      }
+    },
+    "Operation Is Taking Longer Than Expected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Operation Is Taking Longer Than Expected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作耗时较长"
           }
         }
       }

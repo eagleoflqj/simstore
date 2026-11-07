@@ -7,6 +7,7 @@ struct ContentView: View {
   @State private var catalog: CatalogStore
   @State private var installedApps: InstalledAppsStore
   @State private var installations: AppInstallationStore
+  @State private var operationMonitor: SimulatorOperationMonitor
   @State private var launchError: String?
   @State private var librarySection: LibrarySection = .discover
 
@@ -54,9 +55,12 @@ struct ContentView: View {
       }
     #endif
     let simulators = SimulatorStore(discover: discover, shutdown: shutdown, boot: boot)
+    let operationMonitor = SimulatorOperationMonitor()
+    _operationMonitor = State(initialValue: operationMonitor)
     _simulators = State(initialValue: simulators)
     _catalog = State(initialValue: CatalogStore(client: catalogClient))
-    let installedApps = InstalledAppsStore(load: loadInstalledApps)
+    let installedApps = InstalledAppsStore(
+      load: loadInstalledApps, operationMonitor: operationMonitor)
     _installedApps = State(initialValue: installedApps)
     _installations = State(
       initialValue: AppInstallationStore(
@@ -80,7 +84,7 @@ struct ContentView: View {
         },
         didOpen: { bundleID, deviceID in
           installedApps.removeRecentInstallation(bundleID: bundleID, deviceID: deviceID)
-        }))
+        }, operationMonitor: operationMonitor))
   }
 
   private var needsXcode: Bool {
@@ -151,6 +155,9 @@ struct ContentView: View {
     .frame(minWidth: 900, minHeight: 600)
     .task { await simulators.refresh() }
     .onChange(of: librarySection) { _, _ in installedApps.clearRecentInstallations() }
+    .onChange(of: discovery?.devices) { _, devices in
+      operationMonitor.synchronize(with: devices ?? [])
+    }
     .task(id: shouldMonitorState) {
       while shouldMonitorState && !Task.isCancelled {
         do {
@@ -197,6 +204,7 @@ struct ContentView: View {
     } message: {
       Text(simulators.shutdownError ?? "")
     }
+    .modifier(SimulatorRecoveryAlert(monitor: operationMonitor, shutdown: shutdownSimulator))
   }
 
   @ViewBuilder
@@ -249,7 +257,13 @@ struct ContentView: View {
   }
 
   private func shutdownSimulator() {
-    guard let id = simulators.selectedDeviceID, simulators.shutdownDevice(id) != nil else { return }
+    guard let id = simulators.selectedDeviceID else { return }
+    shutdownSimulator(id)
+  }
+
+  private func shutdownSimulator(_ id: String) {
+    guard simulators.shutdownDevice(id) != nil else { return }
+    operationMonitor.stop(deviceID: id)
     installations.cancelOperations(deviceID: id)
   }
 

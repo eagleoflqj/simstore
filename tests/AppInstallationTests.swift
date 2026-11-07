@@ -16,6 +16,7 @@ struct AppInstallationTests {
       try await stoppedDevice()
       try await uninstallJobs()
       try await uninstallFailure()
+      try await recoveryPrompts()
       try versionActions()
       try await replacementPipeline()
       try await replacementWhileSwitchingDevices()
@@ -376,6 +377,48 @@ struct AppInstallationTests {
     }
   }
 
+  static func recoveryPrompts() async throws {
+    let directory = try InstallationFixtures.temporaryDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let data = try archiveData(in: directory)
+    let version = InstallationFixtures.version(data: data)
+    let app = InstallationFixtures.app(version: version)
+    let device = InstallationFixtures.device
+    for action in ["install", "launch", "uninstall"] {
+      let monitor = SimulatorOperationMonitor(wait: {})
+      let gate = InstallationDownloadGate(data: data)
+      let commands = InstallationCommands(
+        blocksInstallation: action == "install", blocksLaunch: action == "launch",
+        blocksUninstallation: action == "uninstall")
+      defer { commands.finish.signal() }
+      let store = AppInstallationStore(
+        installer: AppInstaller(
+          download: { try await gate.download($0, $1, $2) }, command: commands.run,
+          temporaryDirectory: directory.appending(component: "work")),
+        showDevice: { _ in }, operationMonitor: monitor)
+      switch action {
+      case "install":
+        store.install(app: app, version: version, on: device)
+        try await gate.waitForCount(1)
+        try InstallationFixtures.require(
+          monitor.prompt == nil, "A download must not suggest shutting down a healthy simulator.")
+        await gate.finish(0)
+      case "launch": store.open(app: app, on: device)
+      default: store.uninstall(app: app, on: device)
+      }
+      try InstallationFixtures.require(
+        await Task.detached { commands.waitForStart() }.value, "Wait for the simulator command.")
+      try await InstallationFixtures.eventually { monitor.prompt?.device.id == device.id }
+      commands.finish.signal()
+      try await InstallationFixtures.eventually {
+        store.phase(appID: app.id, deviceID: device.id) == nil
+      }
+      try InstallationFixtures.require(
+        monitor.prompt == nil && store.error(appID: app.id, deviceID: device.id) == nil,
+        "A completed simulator command must clear its recovery prompt and finish normally.")
+    }
+  }
+
   static func versionActions() throws {
     let version = InstallationFixtures.version()
     let cases: [(String?, AppInstallationAction)] = [
@@ -498,18 +541,20 @@ private final class InstallationCommands: @unchecked Sendable {
   private let blocksInstallation: Bool
   private let failsInstallation: Bool
   private let failsLaunch: Bool
+  private let blocksLaunch: Bool
   private let blocksUninstallation: Bool
   private let failsUninstallation: Bool
 
   init(
     blocksExtraction: Bool = false, blocksInstallation: Bool = false,
-    failsInstallation: Bool = false, failsLaunch: Bool = false,
+    failsInstallation: Bool = false, failsLaunch: Bool = false, blocksLaunch: Bool = false,
     blocksUninstallation: Bool = false, failsUninstallation: Bool = false
   ) {
     self.blocksExtraction = blocksExtraction
     self.blocksInstallation = blocksInstallation
     self.failsInstallation = failsInstallation
     self.failsLaunch = failsLaunch
+    self.blocksLaunch = blocksLaunch
     self.blocksUninstallation = blocksUninstallation
     self.failsUninstallation = failsUninstallation
   }
@@ -536,7 +581,10 @@ private final class InstallationCommands: @unchecked Sendable {
       if blocksInstallation { try block() }
       if failsInstallation { throw InstallationFixtures.failure("Install failed") }
     }
-    if arguments[1] == "launch", failsLaunch { throw InstallationFixtures.failure("Launch failed") }
+    if arguments[1] == "launch" {
+      if blocksLaunch { try block() }
+      if failsLaunch { throw InstallationFixtures.failure("Launch failed") }
+    }
     if arguments[1] == "listapps" {
       return Data(
         "{ \"org.example.App\" = { ApplicationType = User; CFBundleShortVersionString = \"0.9.0\"; }; }"

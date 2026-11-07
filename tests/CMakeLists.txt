@@ -61,6 +61,7 @@ add_executable(SimStoreInstallationTest AppInstallationTests.swift AppDownloadTe
     "${PROJECT_SOURCE_DIR}/src/AppInstaller.swift"
     "${PROJECT_SOURCE_DIR}/src/AppInstallationPhase.swift"
     "${PROJECT_SOURCE_DIR}/src/AppInstallationStore.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorOperationMonitor.swift"
     "${PROJECT_SOURCE_DIR}/src/AppUpdateBatch.swift"
     "${PROJECT_SOURCE_DIR}/src/AppInstallationAction.swift"
     "${PROJECT_SOURCE_DIR}/src/InstalledAppsStore.swift"
@@ -100,6 +101,7 @@ add_test(NAME simulator-applications COMMAND SimStoreApplicationsTest)
 set_tests_properties(simulator-applications PROPERTIES TIMEOUT 15)
 
 add_executable(SimStoreInstalledAppsTest InstalledAppsStoreTests.swift
+    "${PROJECT_SOURCE_DIR}/src/SimulatorOperationMonitor.swift"
     "${PROJECT_SOURCE_DIR}/src/InstalledAppsStore.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorApplications.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
@@ -109,6 +111,16 @@ add_executable(SimStoreInstalledAppsTest InstalledAppsStoreTests.swift
 target_compile_options(SimStoreInstalledAppsTest PRIVATE -parse-as-library)
 add_test(NAME installed-apps COMMAND SimStoreInstalledAppsTest)
 set_tests_properties(installed-apps PROPERTIES TIMEOUT 15)
+
+add_executable(SimStoreOperationMonitorTest SimulatorOperationMonitorTests.swift
+    "${PROJECT_SOURCE_DIR}/src/SimulatorOperationMonitor.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorRecoveryAlert.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/Command.swift"
+)
+target_compile_options(SimStoreOperationMonitorTest PRIVATE -parse-as-library)
+add_test(NAME simulator-operation-monitor COMMAND SimStoreOperationMonitorTest)
+set_tests_properties(simulator-operation-monitor PROPERTIES TIMEOUT 20 RUN_SERIAL TRUE)
 
 add_executable(SimStoreStoreTest SimulatorStoreTests.swift SimulatorShutdownTests.swift
     "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"

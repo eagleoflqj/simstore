@@ -12,6 +12,7 @@ add_executable(SimStore MACOSX_BUNDLE
     SimulatorStore.swift
     SimulatorDevicePresentation.swift
     SimulatorSelectionViews.swift
+    SimulatorPowerButton.swift
     ContentView.swift
     LibrarySection.swift
     AppCatalog.swift

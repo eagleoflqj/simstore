@@ -50,6 +50,10 @@ enum AppUpdateBatchTests {
     store.updateAll(in: catalog, installedApps: inventory, on: device)
     let firstID = store.updateBatch(deviceID: device.id)?.id
     try InstallationFixtures.require(
+      store.hasOperations(deviceID: device.id)
+        && !store.hasOperations(deviceID: "another-device"),
+      "Queued updates must block shutdown only for their own device.")
+    try InstallationFixtures.require(
       store.phase(appID: "bravo", deviceID: device.id) == .queued,
       "Reserve queued apps before returning to the UI.")
     try InstallationFixtures.require(
@@ -78,6 +82,9 @@ enum AppUpdateBatchTests {
       "The next download starts only after the previous installation has finished.")
     await downloads.finish(1)
     try await finished(store, device.id)
+    try InstallationFixtures.require(
+      !store.hasOperations(deviceID: device.id),
+      "Completed batch results must not prevent simulator shutdown.")
     try InstallationFixtures.require(
       store.updateBatch(deviceID: device.id)?.updated == 2
         && store.updateBatch(deviceID: device.id)?.completed == 2,
@@ -154,6 +161,9 @@ enum AppUpdateBatchTests {
     store.replace(app: fixture.apps[1], version: fixture.apps[1].latestVersion, on: device)
     try await downloads.waitForCount(2)
     store.cancelAllUpdates(deviceID: device.id)
+    try InstallationFixtures.require(
+      store.hasOperations(deviceID: device.id),
+      "Canceling must keep shutdown blocked until active operations finish cleaning up.")
     try InstallationFixtures.require(
       store.phase(appID: "alpha", deviceID: device.id) == .canceling
         && store.phase(appID: "charlie", deviceID: device.id) == nil,

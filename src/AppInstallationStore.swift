@@ -48,6 +48,11 @@ final class AppInstallationStore {
     errors[Key(appID: appID, deviceID: deviceID)]
   }
 
+  func hasOperations(deviceID: String) -> Bool {
+    phases.keys.contains { $0.deviceID == deviceID }
+      || updateBatches[deviceID]?.isRunning == true
+  }
+
   func install(app: CatalogApp, version: CatalogVersion, on device: SimulatorDevice) {
     startInstallation(app: app, version: version, on: device, completion: didInstall)
   }

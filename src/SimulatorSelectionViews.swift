@@ -49,9 +49,10 @@ struct SimulatorPicker: View {
 @MainActor
 struct SimulatorDetailView: View {
   let device: SimulatorDevice
-  let isStarting: Bool
+  let hasAppOperations: Bool
   let deviceManagerName: String?
   let start: () -> Void
+  let shutdown: () -> Void
   let openDeviceManager: () -> Void
 
   var body: some View {
@@ -74,7 +75,7 @@ struct SimulatorDetailView: View {
             .fill(device.state == "Booted" ? Color.green : Color.secondary)
             .frame(width: 6, height: 6)
             .accessibilityHidden(true)
-          Text(verbatim: device.stateLabel(isStarting: isStarting))
+          Text(verbatim: device.stateLabel())
         }
         .font(.system(size: 12, weight: .medium))
         .foregroundStyle(.secondary)
@@ -98,11 +99,9 @@ struct SimulatorDetailView: View {
       .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 12))
 
       HStack(spacing: 10) {
-        if device.canStart || isStarting {
-          SimulatorStartButton(
-            isStarting: isStarting || device.state == "Booting", action: start
-          )
-          .buttonStyle(.borderedProminent)
+        if device.canStart || device.canShutdown || device.isTransitioning {
+          SimulatorPowerButton(
+            device: device, hasAppOperations: hasAppOperations, start: start, shutdown: shutdown)
         }
         DeviceManagerButton(name: deviceManagerName, action: openDeviceManager)
           .buttonStyle(.bordered)
@@ -110,29 +109,6 @@ struct SimulatorDetailView: View {
     }
     .frame(maxWidth: 480)
     .padding(32)
-  }
-}
-
-@MainActor
-struct SimulatorStartButton: View {
-  let isStarting: Bool
-  let action: () -> Void
-
-  var body: some View {
-    Button(action: action) {
-      Label {
-        StableSizeView(isStarting, states: [false, true]) { starting in
-          Text(title(isStarting: starting))
-        }
-      } icon: {
-        Image(systemName: "power")
-      }
-    }
-    .disabled(isStarting)
-  }
-
-  private func title(isStarting: Bool) -> LocalizedStringKey {
-    isStarting ? "Starting…" : "Start Simulator"
   }
 }
 

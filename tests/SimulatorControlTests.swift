@@ -9,8 +9,12 @@ struct SimulatorControlTests {
       try await commandFailure()
       try await cancelledBeforeBoot()
       try await cancelledDuringBoot()
+      try await shutdownCommand()
+      try await shutdownFailureAndCancellation()
       try presentationRequests()
-      print("PASS: simulator boot command, background execution, command errors, and cancellation.")
+      print(
+        "PASS: targeted simulator boot/shutdown, background execution, diagnostics, and cancellation."
+      )
     } catch {
       FileHandle.standardError.write(
         Data("Simulator control test failed: \(error.localizedDescription)\n".utf8))
@@ -87,6 +91,54 @@ struct SimulatorControlTests {
 
   static func waitForCommand(_ semaphore: DispatchSemaphore) -> Bool {
     semaphore.wait(timeout: .now() + 5) == .success
+  }
+
+  static func shutdownCommand() async throws {
+    let id = "0E67E0B9-7C5B-44E6-954C-B2AB9B955E9F"
+    try await SimulatorControl.shutdown(id) { executable, arguments in
+      try require(executable == Command.xcrunExecutable, "Use the common xcrun wrapper.")
+      try require(
+        arguments == ["simctl", "shutdown", id], "Shut down only the exact requested UDID.")
+      try require(!Thread.isMainThread, "Shutdown must not block the UI.")
+      return Data()
+    }
+  }
+
+  static func shutdownFailureAndCancellation() async throws {
+    let expected = failure("Shutdown failed")
+    do {
+      try await SimulatorControl.shutdown("DEVICE") { _, _ in throw expected }
+      throw failure("Shutdown failure must throw.")
+    } catch {
+      try require((error as NSError) == expected, "Preserve the shutdown diagnostic.")
+    }
+    let canceled = Task {
+      withUnsafeCurrentTask { $0?.cancel() }
+      try await SimulatorControl.shutdown("DEVICE") { _, _ in
+        throw failure("An already canceled shutdown must not invoke simctl.")
+      }
+    }
+    do {
+      try await canceled.value
+      throw failure("An already canceled shutdown must throw.")
+    } catch is CancellationError {}
+    let started = DispatchSemaphore(value: 0)
+    let finish = DispatchSemaphore(value: 0)
+    let task = Task {
+      try await SimulatorControl.shutdown("DEVICE") { _, _ in
+        started.signal()
+        try require(finish.wait(timeout: .now() + 5) == .success, "Release the shutdown command.")
+        return Data()
+      }
+    }
+    let didStart = await Task.detached { waitForCommand(started) }.value
+    task.cancel()
+    finish.signal()
+    try require(didStart, "Wait for the shutdown command before canceling.")
+    do {
+      try await task.value
+      throw failure("Canceled shutdown must not be reported as successful.")
+    } catch is CancellationError {}
   }
 
   static func presentationRequests() throws {

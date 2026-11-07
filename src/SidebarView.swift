@@ -9,7 +9,6 @@ struct SidebarView: View {
   @Binding var section: LibrarySection
   let updateCount: Int?
   let selectedDeviceID: String?
-  let startingDeviceIDs: Set<String>
   let selectDevice: (String) -> Void
   let openRepository: () -> Void
 
@@ -53,7 +52,7 @@ struct SidebarView: View {
               VStack(alignment: .leading, spacing: 4) {
                 Text(device.name).font(.system(size: 12, weight: .medium))
                 Text(
-                  "\(device.runtimeLabel) · \(device.stateLabel(isStarting: startingDeviceIDs.contains(device.id)))"
+                  "\(device.runtimeLabel) · \(device.stateLabel())"
                 )
                 .font(.system(size: 10))
                 .foregroundStyle(.secondary)

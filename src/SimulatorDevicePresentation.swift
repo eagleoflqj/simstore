@@ -19,8 +19,8 @@ extension SimulatorDevice {
 
   var runtimeLabel: String { String(localized: "iOS \(runtime)") }
 
-  func stateLabel(isStarting: Bool = false) -> String {
-    switch isStarting ? "Booting" : state {
+  func stateLabel() -> String {
+    switch state {
     case "Booted": String(localized: "Booted")
     case "Shutdown": String(localized: "Shutdown")
     case "Booting": String(localized: "Booting")

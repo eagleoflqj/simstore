@@ -721,6 +721,22 @@
         }
       }
     },
+    "Couldn’t Shut Down Simulator": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t Shut Down Simulator"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法关闭模拟器"
+          }
+        }
+      }
+    },
     "Couldn’t Start Simulator": {
       "localizations": {
         "en": {
@@ -765,6 +781,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法检查模拟器"
+          }
+        }
+      }
+    },
+    "Couldn’t shut down %@.\n%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t shut down %1$@.\n%2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法关闭 %1$@。\n%2$@"
           }
         }
       }
@@ -957,6 +989,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "更新失败的应用"
+          }
+        }
+      }
+    },
+    "Finish or cancel app operations before shutting down this simulator.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish or cancel app operations before shutting down this simulator."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先完成或取消应用操作，再关闭此模拟器。"
           }
         }
       }
@@ -1809,6 +1857,22 @@
         }
       }
     },
+    "Shut Down": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shut Down"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关机"
+          }
+        }
+      }
+    },
     "Shutdown": {
       "localizations": {
         "en": {
@@ -1837,6 +1901,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在关机"
+          }
+        }
+      }
+    },
+    "Shutting Down…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shutting Down…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在关机…"
           }
         }
       }

@@ -21,6 +21,9 @@ struct ContentView: View {
     boot: @escaping @Sendable (String) async throws -> Void = {
       try await SimulatorControl.boot($0)
     },
+    shutdown: @escaping @Sendable (String) async throws -> Void = {
+      try await SimulatorControl.shutdown($0)
+    },
     catalogClient: CatalogClient = .live,
     installer: AppInstaller = AppInstaller(),
     showDevice: (@MainActor (SimulatorDevice) async throws -> Void)? = nil,
@@ -40,15 +43,17 @@ struct ContentView: View {
       }
       var installer = installer
       var boot = boot
+      var shutdown = shutdown
       var loadInstalledApps = loadInstalledApps
       if case .success(.some(.incompatible)) = preview {
         installer.download = { _, _, _ in try PreviewScenario.rejectDeviceAction() }
         installer.command = { _, _ in try PreviewScenario.rejectDeviceAction() }
         boot = { _ in try PreviewScenario.rejectDeviceAction() }
+        shutdown = { _ in try PreviewScenario.rejectDeviceAction() }
         loadInstalledApps = { _ in [] }
       }
     #endif
-    let simulators = SimulatorStore(discover: discover, boot: boot)
+    let simulators = SimulatorStore(discover: discover, shutdown: shutdown, boot: boot)
     _simulators = State(initialValue: simulators)
     _catalog = State(initialValue: CatalogStore(client: catalogClient))
     let installedApps = InstalledAppsStore(load: loadInstalledApps)
@@ -103,7 +108,7 @@ struct ContentView: View {
           discovery: discovery, isChecking: simulators.isChecking, needsXcode: needsXcode,
           section: $librarySection, updateCount: updateCount,
           selectedDeviceID: simulators.selectedDeviceID,
-          startingDeviceIDs: simulators.startingDeviceIDs, selectDevice: simulators.selectDevice,
+          selectDevice: simulators.selectDevice,
           openRepository: openRepository
         )
         .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
@@ -181,6 +186,17 @@ struct ContentView: View {
     } message: {
       Text(simulators.startError ?? "")
     }
+    .alert(
+      "Couldn’t Shut Down Simulator",
+      isPresented: Binding(
+        get: { simulators.shutdownError != nil },
+        set: { if !$0 { simulators.shutdownError = nil } }
+      )
+    ) {
+      Button("OK", role: .cancel) { simulators.shutdownError = nil }
+    } message: {
+      Text(simulators.shutdownError ?? "")
+    }
   }
 
   @ViewBuilder
@@ -198,9 +214,9 @@ struct ContentView: View {
           section: librarySection,
           store: catalog, installedApps: installedApps, installations: installations,
           device: device,
-          isStarting: simulators.isStartingSelectedDevice,
           deviceManagerName: deviceManager?.name,
           startSimulator: startSimulator,
+          shutdownSimulator: shutdownSimulator,
           openDeviceManager: openDeviceManager
         )
         .id(librarySection)
@@ -223,17 +239,25 @@ struct ContentView: View {
   }
 
   private func startSimulator() {
-    let id = simulators.selectedDeviceID
+    guard let id = simulators.selectedDeviceID else { return }
     Task {
-      let started = await simulators.startSelectedDevice()
+      let started = await simulators.startDevice(id)
       if started, let device = simulators.selectedDevice, device.id == id {
         openDeviceManager()
       }
     }
   }
 
+  private func shutdownSimulator() {
+    guard let id = simulators.selectedDeviceID, !installations.hasOperations(deviceID: id) else {
+      return
+    }
+    simulators.shutdownDevice(id)
+  }
+
   private var shouldMonitorState: Bool {
     !simulators.startingDeviceIDs.isEmpty
+      || !simulators.shuttingDownDeviceIDs.isEmpty
       || discovery?.devices.contains(where: \.isTransitioning) == true
   }
 

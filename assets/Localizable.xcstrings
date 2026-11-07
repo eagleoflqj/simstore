@@ -961,6 +961,22 @@
         }
       }
     },
+    "Email": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电子邮件"
+          }
+        }
+      }
+    },
     "Every app in the catalog is already installed on this simulator.": {
       "localizations": {
         "en": {

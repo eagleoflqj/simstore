@@ -1,14 +1,15 @@
 import Foundation
 
 enum CatalogCategory: String {
-  case browser, cloud, communication, games, health, maps, media, productivity, reading, security,
-    social, utilities
+  case browser, cloud, communication, email, games, health, maps, media, productivity, reading,
+    security, social, utilities
 
   var title: String {
     switch self {
     case .browser: String(localized: "Browser")
     case .cloud: String(localized: "Cloud")
     case .communication: String(localized: "Communication")
+    case .email: String(localized: "Email")
     case .games: String(localized: "Games")
     case .health: String(localized: "Health")
     case .maps: String(localized: "Maps")

@@ -29,7 +29,7 @@ jobs:
         run: brew install librsvg
       - name: Check Python lint
         run: |
-          python3 -m pip install ruff==0.16.0
+          python3 -m pip install -r requirements.txt
           python3 -m ruff check scripts tests
       - name: Build
         run: |

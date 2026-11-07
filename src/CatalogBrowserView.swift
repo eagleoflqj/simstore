@@ -16,7 +16,6 @@ struct CatalogBrowserView: View {
   @State private var category = ""
   @State private var selectedApp: CatalogApp?
   @State private var showsSimulator = false
-  @FocusState private var focusedAppID: String?
 
   private var categories: [String]? {
     availableApps.map { Array(Set($0.flatMap(\.categories))).sorted() }
@@ -242,44 +241,12 @@ struct CatalogBrowserView: View {
   }
 
   private var appGrid: some View {
-    GeometryReader { geometry in
-      let columns = max(1, Int((geometry.size.width + 16) / 280))
-      let cardWidth = (geometry.size.width - 6 - CGFloat(columns - 1) * 16) / CGFloat(columns)
-      let visibleApps = apps
-      ScrollViewReader { proxy in
-        ScrollView {
-          Grid(horizontalSpacing: 16, verticalSpacing: 16) {
-            ForEach(0..<((visibleApps.count + columns - 1) / columns), id: \.self) { row in
-              GridRow {
-                ForEach(0..<columns, id: \.self) { column in
-                  let index = row * columns + column
-                  if index < visibleApps.count {
-                    let app = visibleApps[index]
-                    CatalogAppCard(
-                      app: app, device: device, installedApps: installedApps,
-                      installations: installations, section: section,
-                      focusedAppID: $focusedAppID,
-                      showDetails: { selectedApp = app }
-                    )
-                    .frame(width: cardWidth)
-                    .id(app.id)
-                  } else {
-                    Color.clear.frame(width: cardWidth)
-                      .gridCellUnsizedAxes(.vertical)
-                      .accessibilityHidden(true)
-                  }
-                }
-              }
-            }
-          }
-          .padding(3)
-          .padding(.bottom, 24)
-        }
-        .defaultScrollAnchor(.top)
-        .onChange(of: focusedAppID) { _, id in
-          if let id { proxy.scrollTo(id, anchor: .center) }
-        }
-      }
+    CatalogAppGrid(apps: apps) { app, focus in
+      CatalogAppCard(
+        app: app, device: device, installedApps: installedApps,
+        installations: installations, section: section,
+        focusedAppID: focus,
+        showDetails: { selectedApp = app })
     }
   }
 

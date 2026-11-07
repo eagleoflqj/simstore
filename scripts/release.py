@@ -1,20 +1,27 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass
 import hashlib
 import json
-from pathlib import Path
 import plistlib
 import re
 import subprocess
 import sys
 import tarfile
 import tempfile
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
-from version import SourceVersion, VERSION, VersionError, git, source_version, version_key, write_json
-
+from version import (
+    VERSION,
+    SourceVersion,
+    VersionError,
+    git,
+    source_version,
+    version_key,
+    write_json,
+)
 
 ARCHIVE = 'SimStore.app.tar.bz2'
 METADATA = 'release.json'
@@ -131,7 +138,7 @@ class GitHub:
         self.repo = repo
 
     def run(self, *arguments: str) -> str:
-        result = subprocess.run(['gh', *arguments], capture_output=True, text=True)
+        result = subprocess.run(['gh', *arguments], check=False, capture_output=True, text=True)
         if result.returncode:
             raise VersionError(result.stderr.strip() or 'GitHub command failed')
         return result.stdout

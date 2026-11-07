@@ -1,16 +1,28 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import plistlib
 import sys
 import tarfile
 import unittest
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 
+from release import (
+    ARCHIVE,
+    INDEX,
+    METADATA,
+    GitHub,
+    Release,
+    assemble_index,
+    digest,
+    package,
+    publish,
+    refresh_index,
+    release_notes,
+)
 from release_fixtures import Repository, workspace
-from release import ARCHIVE, INDEX, METADATA, GitHub, Release, assemble_index, digest, package, publish, refresh_index, release_notes
 from version import SourceVersion, VersionError, source_version, write_json
 
 

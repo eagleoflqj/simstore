@@ -98,7 +98,7 @@ struct PreviewScenarioTests {
       incompatible.devices == [
         SimulatorDevice(
           id: "00000000-0000-0000-0000-000000000001", name: "iPhone 8", runtime: "12.0",
-          state: "Booted")
+          state: .booted)
       ],
       "The incompatible preview must provide a running old device without a local runtime.")
     try require(

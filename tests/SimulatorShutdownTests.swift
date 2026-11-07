@@ -14,7 +14,7 @@ extension SimulatorStoreTests {
   }
 
   private static func shuttingDownAndSelectionChanges() async throws {
-    let fixture = Inventory([device("A", state: "Booted"), device("B", state: "Booted")])
+    let fixture = Inventory([device("A", state: .booted), device("B", state: .booted)])
     let probe = PowerProbe()
     let store = SimulatorStore(
       discover: fixture.scan, shutdown: { try await probe.run($0) }, boot: { _ in })
@@ -23,7 +23,7 @@ extension SimulatorStoreTests {
       throw failure("Accept an idle running device.")
     }
     try require(
-      store.shuttingDownDeviceIDs == ["A"] && store.selectedDevice?.state == "Shutting Down",
+      store.shuttingDownDeviceIDs == ["A"] && store.selectedDevice?.state == .shuttingDown,
       "Reserve shutdown synchronously and prevent app operations before the first await.")
     try require(
       store.shutdownDevice("A") == nil, "Repeated clicks cannot issue a duplicate shutdown.")
@@ -32,22 +32,22 @@ extension SimulatorStoreTests {
     try await eventually { await probe.calls == ["A"] }
     await store.refresh()
     try require(
-      store.selectedDevice?.state == "Shutting Down",
+      store.selectedDevice?.state == .shuttingDown,
       "A stale Booted scan cannot re-enable app operations during shutdown.")
     store.selectDevice("B")
-    fixture.devices = [device("A"), device("B", state: "Booted")]
+    fixture.devices = [device("A"), device("B", state: .booted)]
     await probe.finish("A")
     try require(await job.value, "Confirm shutdown from the fresh inventory.")
     try require(
       store.selectedDeviceID == "B" && store.shuttingDownDeviceIDs.isEmpty,
       "Completion must preserve a later device selection and clear only its own progress.")
     try require(
-      store.discovery?.devices.first?.state == "Shutdown", "Show the confirmed power state.")
+      store.discovery?.devices.first?.state == .shutdown, "Show the confirmed power state.")
     try require(store.shutdownDevice("A") == nil, "Do not shut down an already stopped simulator.")
   }
 
   private static func independentShutdowns() async throws {
-    let fixture = Inventory([device("A", state: "Booted"), device("B", state: "Booted")])
+    let fixture = Inventory([device("A", state: .booted), device("B", state: .booted)])
     let probe = PowerProbe()
     let store = SimulatorStore(
       discover: fixture.scan, shutdown: { try await probe.run($0) }, boot: { _ in })
@@ -57,12 +57,12 @@ extension SimulatorStoreTests {
     }
     try await eventually { await probe.calls.count == 2 }
     try require(store.shuttingDownDeviceIDs == ["A", "B"], "Track each shutdown separately.")
-    fixture.devices = [device("A"), device("B", state: "Booted")]
+    fixture.devices = [device("A"), device("B", state: .booted)]
     await probe.finish("A")
     try require(await a.value, "Confirm the first device independently.")
     try require(
       store.shuttingDownDeviceIDs == ["B"]
-        && store.discovery?.devices.last?.state == "Shutting Down",
+        && store.discovery?.devices.last?.state == .shuttingDown,
       "One completed shutdown cannot clear another device's progress.")
     fixture.devices = [device("A"), device("B")]
     await probe.finish("B")
@@ -70,7 +70,7 @@ extension SimulatorStoreTests {
   }
 
   private static func shutdownWithOverlappingRefresh() async throws {
-    let fixture = Inventory([device("A", state: "Booted")])
+    let fixture = Inventory([device("A", state: .booted)])
     let probe = PowerProbe()
     let store = SimulatorStore(
       discover: fixture.scan, shutdown: { try await probe.run($0) }, boot: { _ in })
@@ -82,17 +82,17 @@ extension SimulatorStoreTests {
     try await eventually { fixture.pendingScan != nil }
     await probe.finish("A")
     fixture.devices = [device("A")]
-    fixture.finishScan(with: [device("A", state: "Booted")])
+    fixture.finishScan(with: [device("A", state: .booted)])
     await refresh.value
     try require(await shutdown.value, "Do not use a scan begun before shutdown completed.")
     try require(
-      fixture.calls == 3 && store.selectedDevice?.state == "Shutdown",
+      fixture.calls == 3 && store.selectedDevice?.state == .shutdown,
       "Read a new inventory after the overlapping scan.")
   }
 
   private static func shutdownFailuresAndCancellation() async throws {
     for canceled in [false, true] {
-      let fixture = Inventory([device("A", state: "Booted")])
+      let fixture = Inventory([device("A", state: .booted)])
       let store = SimulatorStore(
         discover: fixture.scan,
         shutdown: { _ in
@@ -105,7 +105,7 @@ extension SimulatorStoreTests {
         await job.value == false && store.shuttingDownDeviceIDs.isEmpty,
         "Failure and cancellation must not report success or leave progress stuck.")
       try require(
-        store.selectedDevice?.state == "Booted", "A failed command cannot imply Shutdown.")
+        store.selectedDevice?.state == .booted, "A failed command cannot imply Shutdown.")
       if canceled {
         try require(store.shutdownError == nil, "Keep cancellation silent.")
       } else {
@@ -115,7 +115,7 @@ extension SimulatorStoreTests {
           "Identify the affected simulator and preserve the command's diagnostic.")
       }
     }
-    let fixture = Inventory([device("A", state: "Booted")])
+    let fixture = Inventory([device("A", state: .booted)])
     let probe = PowerProbe()
     let store = SimulatorStore(
       discover: fixture.scan, shutdown: { try await probe.run($0) }, boot: { _ in })
@@ -128,7 +128,7 @@ extension SimulatorStoreTests {
   }
 
   private static func confirmedShutdownAndInvalidStates() async throws {
-    for state in ["Shutdown", "Booting", "Shutting Down", "Unknown"] {
+    for state in [SimulatorState.shutdown, .booting, .shuttingDown, .unknown] {
       let fixture = Inventory([device("A", state: state)])
       let store = SimulatorStore(
         discover: fixture.scan, shutdown: { _ in throw failure("Unexpected shutdown") },
@@ -138,8 +138,8 @@ extension SimulatorStoreTests {
         store.shutdownDevice("A") == nil && store.shutdownDevice("missing") == nil,
         "Only a known, fully booted device can shut down.")
     }
-    for refreshed in [[device("A", state: "Booted")], [device("A", state: "Shutting Down")], []] {
-      let fixture = Inventory([device("A", state: "Booted")])
+    for refreshed in [[device("A", state: .booted)], [device("A", state: .shuttingDown)], []] {
+      let fixture = Inventory([device("A", state: .booted)])
       let probe = PowerProbe()
       let store = SimulatorStore(
         discover: fixture.scan, shutdown: { try await probe.run($0) }, boot: { _ in })
@@ -163,14 +163,14 @@ extension SimulatorStoreTests {
     await store.refresh()
     let boot = Task { await store.startDevice("A") }
     try await eventually { await probe.calls == ["A"] }
-    fixture.devices = [device("A", state: "Booted")]
+    fixture.devices = [device("A", state: .booted)]
     await store.refresh()
     try require(
-      store.selectedDevice?.state == "Booting" && store.shutdownDevice("A") == nil,
+      store.selectedDevice?.state == .booting && store.shutdownDevice("A") == nil,
       "A Booted snapshot cannot allow shutdown or app installs before boot readiness finishes.")
     await probe.finish("A")
     try require(
-      await boot.value && store.selectedDevice?.state == "Booted",
+      await boot.value && store.selectedDevice?.state == .booted,
       "Expose readiness after bootstatus completes.")
   }
 }

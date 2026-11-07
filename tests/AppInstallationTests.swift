@@ -286,7 +286,7 @@ struct AppInstallationTests {
   }
 
   static func stoppedDevice() async throws {
-    let stopped = SimulatorDevice(id: "stopped", name: "iPhone", runtime: "27.0", state: "Shutdown")
+    let stopped = SimulatorDevice(id: "stopped", name: "iPhone", runtime: "27.0", state: .shutdown)
     let commands = InstallationCommands()
     let store = AppInstallationStore(
       installer: AppInstaller(
@@ -334,7 +334,7 @@ struct AppInstallationTests {
         && commands.calls.count == 2,
       "Stopping device operations must not wait for, cancel, or duplicate an in-flight uninstall.")
     let other = SimulatorDevice(
-      id: "device-B", name: device.name, runtime: device.runtime, state: "Booted")
+      id: "device-B", name: device.name, runtime: device.runtime, state: .booted)
     await inventory.refresh(for: other)
     commands.finish.signal()
     try await InstallationFixtures.eventually {
@@ -459,7 +459,7 @@ struct AppInstallationTests {
     let inventory = InstalledAppsStore(load: { _ in [] }, operationMonitor: monitor)
     await inventory.refresh(for: simulators.selectedDevice!)
     try InstallationFixtures.require(
-      simulators.selectedDevice?.state == "Booted" && monitor.prompt == prompt
+      simulators.selectedDevice?.state == .booted && monitor.prompt == prompt
         && store.phase(appID: "example", deviceID: device.id) == .uninstalling,
       "Retrying discovery and refreshing apps cannot lose the original stalled operation.")
     commands.finish.signal()

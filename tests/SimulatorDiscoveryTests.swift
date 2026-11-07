@@ -6,6 +6,7 @@ struct SimulatorDiscoveryTests {
     do {
       try emptyInventory()
       try availableIOSDevices()
+      try powerStates()
       try malformedInventory()
       try deviceManagerLocations()
       try await xcodeInstallationStates()
@@ -48,10 +49,10 @@ struct SimulatorDiscoveryTests {
       devices.first(where: { $0.id == "PHONE" })?.runtime == "27.1",
       "The runtime version should come from its runtime identifier.")
     try require(
-      devices.first(where: { $0.id == "PHONE" })?.state == "Shutdown",
+      devices.first(where: { $0.id == "PHONE" })?.state == .shutdown,
       "A shut-down simulator must still count as an available device.")
     try require(
-      devices.first(where: { $0.id == "TABLET" })?.state == "Booted",
+      devices.first(where: { $0.id == "TABLET" })?.state == .booted,
       "The device's power state should be preserved.")
   }
 
@@ -66,6 +67,46 @@ struct SimulatorDiscoveryTests {
         continue
       }
       throw failure("An invalid response must fail instead of being interpreted as no simulators.")
+    }
+  }
+
+  static func powerStates() throws {
+    let known: [(String, SimulatorState)] = [
+      ("Shutdown", .shutdown), ("Booting", .booting), ("Booted", .booted),
+      ("Shutting Down", .shuttingDown), ("Unknown", .unknown),
+    ]
+    for (value, state) in known {
+      let decoded = try JSONDecoder().decode(
+        SimulatorState.self, from: JSONEncoder().encode(value))
+      try require(decoded == state, "Recognize every supported simctl state spelling.")
+    }
+    for value in ["FutureState", "", "booted"] {
+      let data = try JSONSerialization.data(withJSONObject: [
+        "devices": [
+          "com.apple.CoreSimulator.SimRuntime.iOS-27-0": [
+            ["udid": "FUTURE", "name": "iPhone", "state": value, "isAvailable": true]
+          ]
+        ]
+      ])
+      let devices = try SimulatorDiscovery.decodeDevices(data)
+      try require(
+        devices.count == 1 && devices.first?.state == .unknown,
+        "Keep an available device when simctl returns an unfamiliar state.")
+    }
+    try require(
+      !SimulatorState.unknown.canStart && !SimulatorState.unknown.canShutdown
+        && !SimulatorState.unknown.isTransitioning
+        && !SimulatorState.unknown.canPerformPowerAction,
+      "Unknown states must not enable power actions or polling.")
+    try require(
+      SimulatorState.booting.canStart && SimulatorState.booting.isTransitioning
+        && !SimulatorState.booting.canPerformPowerAction,
+      "An existing boot can be awaited without enabling a duplicate startup button.")
+    for value in ["null", "true", "42"] {
+      do {
+        _ = try JSONDecoder().decode(SimulatorState.self, from: Data(value.utf8))
+      } catch is DecodingError { continue }
+      throw failure("A non-string state must remain a malformed inventory error.")
     }
   }
 

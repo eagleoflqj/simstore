@@ -271,7 +271,7 @@ struct ContentView: View {
   private var shouldMonitorState: Bool {
     !simulators.startingDeviceIDs.isEmpty
       || !simulators.shuttingDownDeviceIDs.isEmpty
-      || discovery?.devices.contains(where: \.isTransitioning) == true
+      || discovery?.devices.contains(where: \.state.isTransitioning) == true
   }
 
   private func openRepository() {

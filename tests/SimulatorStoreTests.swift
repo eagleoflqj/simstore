@@ -22,7 +22,7 @@ struct SimulatorStoreTests {
   }
 
   static func selectionAndRefresh() async throws {
-    let fixture = Inventory([device("A"), device("B", state: "Booted")])
+    let fixture = Inventory([device("A"), device("B", state: .booted)])
     let store = SimulatorStore(discover: fixture.scan, boot: { _ in })
     await store.refresh()
     try require(store.selectedDeviceID == "B", "Prefer an already booted simulator initially.")
@@ -35,7 +35,7 @@ struct SimulatorStoreTests {
     try require(store.discovery == nil, "A discovery error must not expose a stale inventory.")
     try require(store.selectedDeviceID == "A", "Keep the selection through a discovery error.")
     fixture.error = nil
-    fixture.devices = [device("C"), device("B", state: "Booted")]
+    fixture.devices = [device("C"), device("B", state: .booted)]
     await store.refresh()
     try require(
       store.selectedDeviceID == "B", "Replace a disappeared selection with a booted device.")
@@ -56,23 +56,23 @@ struct SimulatorStoreTests {
     let startup = Task { await store.startDevice("A") }
     try await eventually { await probe.calls == ["A"] }
     try require(
-      store.selectedDevice?.state == "Booting", "Expose startup progress for the selected device.")
+      store.selectedDevice?.state == .booting, "Expose startup progress for the selected device.")
     try require(
       await store.startDevice("A") == false, "A duplicate start must not report success.")
     try require(await probe.calls == ["A"], "Repeated clicks must not start a device twice.")
     store.selectDevice("B")
     try require(
-      store.selectedDevice?.state != "Booting", "Startup progress must follow its own device.")
+      store.selectedDevice?.state != .booting, "Startup progress must follow its own device.")
     try require(
       store.startingDeviceIDs == ["A"], "Changing selection must not lose startup tracking.")
-    fixture.devices = [device("A", state: "Booted"), device("B")]
+    fixture.devices = [device("A", state: .booted), device("B")]
     await probe.finish()
     try require(
       await startup.value, "A successful boot confirmed by inventory should report success.")
     try require(
       store.selectedDeviceID == "B", "Startup completion must preserve a later selection.")
     try require(
-      store.discovery?.devices.first?.state == "Booted",
+      store.discovery?.devices.first?.state == .booted,
       "Read startup state from a fresh inventory.")
     try require(store.startingDeviceIDs.isEmpty, "Clear progress after startup.")
     try require(fixture.calls == 2, "Refresh the inventory after startup.")
@@ -96,7 +96,7 @@ struct SimulatorStoreTests {
     await Task.yield()
     try require(fixture.calls == 2, "Concurrent refreshes should share one scan.")
     await probe.finish()
-    fixture.devices = [device("A", state: "Booted")]
+    fixture.devices = [device("A", state: .booted)]
     fixture.finishScan(with: [device("A")])
     await refresh.value
     await coalesced.value
@@ -105,13 +105,13 @@ struct SimulatorStoreTests {
     try require(
       fixture.calls == 3, "Startup must request a scan newer than any in-flight inventory.")
     try require(
-      store.selectedDevice?.state == "Booted", "An old scan must not hide successful startup.")
+      store.selectedDevice?.state == .booted, "An old scan must not hide successful startup.")
     try require(
-      !store.isChecking && store.selectedDevice?.state != "Booting", "All progress must finish.")
+      !store.isChecking && store.selectedDevice?.state != .booting, "All progress must finish.")
   }
 
   static func independentStarts() async throws {
-    let fixture = Inventory([device("A"), device("B", state: "Booting")])
+    let fixture = Inventory([device("A"), device("B", state: .booting)])
     let probe = PowerProbe()
     let store = SimulatorStore(discover: fixture.scan, boot: { try await probe.run($0) })
     await store.refresh()
@@ -122,15 +122,15 @@ struct SimulatorStoreTests {
     try await eventually { await probe.calls == ["A", "B"] }
     try require(
       store.startingDeviceIDs == ["A", "B"], "Track each simulator's startup separately.")
-    fixture.devices = [device("A", state: "Booted"), device("B", state: "Booting")]
+    fixture.devices = [device("A", state: .booted), device("B", state: .booting)]
     await probe.finish("A")
     try require(await first.value, "Confirm the first simulator's startup independently.")
     try require(
       store.startingDeviceIDs == ["B"], "One startup must not clear another device's progress.")
     try require(
-      store.selectedDevice?.state == "Booting",
+      store.selectedDevice?.state == .booting,
       "Keep progress for the currently selected simulator.")
-    fixture.devices = [device("A", state: "Booted"), device("B", state: "Booted")]
+    fixture.devices = [device("A", state: .booted), device("B", state: .booted)]
     await probe.finish("B")
     try require(await second.value, "Confirm the second simulator's startup independently.")
     try require(
@@ -152,7 +152,7 @@ struct SimulatorStoreTests {
       try require(
         store.startingDeviceIDs.isEmpty, "A failed or cancelled start must clear progress.")
       try require(
-        store.selectedDevice?.state == "Shutdown", "A failed command cannot imply Booted.")
+        store.selectedDevice?.state == .shutdown, "A failed command cannot imply Booted.")
       try require(fixture.calls == 1, "A failed boot should not imply a successful refresh.")
       if cancelled {
         try require(store.startError == nil, "Keep cancellation silent.")
@@ -163,17 +163,20 @@ struct SimulatorStoreTests {
           "Identify the failed simulator and preserve the boot diagnostic.")
       }
     }
-    let fixture = Inventory([device("A", state: "Shutting Down")])
-    let store = SimulatorStore(discover: fixture.scan) { _ in
-      throw failure("Do not start a device while it is shutting down")
+    for state in [SimulatorState.shuttingDown, .unknown] {
+      let fixture = Inventory([device("A", state: state)])
+      let store = SimulatorStore(discover: fixture.scan) { _ in
+        throw failure("Do not start a device in an unavailable state")
+      }
+      await store.refresh()
+      try require(
+        await store.startDevice("A") == false && store.startError == nil,
+        "Unknown and shutting-down devices must not receive a boot command.")
     }
-    await store.refresh()
-    await store.startDevice("A")
-    try require(store.startError == nil, "A shutting-down device must not receive a boot command.")
   }
 
   static func startupRequiresConfirmedReadiness() async throws {
-    for refreshedDevices in [[device("A")], [device("A", state: "Booting")], []] {
+    for refreshedDevices in [[device("A")], [device("A", state: .booting)], []] {
       let fixture = Inventory([device("A")])
       let probe = PowerProbe()
       let store = SimulatorStore(discover: fixture.scan, boot: { try await probe.run($0) })
@@ -196,7 +199,7 @@ struct SimulatorStoreTests {
     let startup = Task { await store.startDevice("A") }
     try await eventually { await probe.calls == ["A"] }
     store.selectDevice("B")
-    fixture.devices = [device("A", state: "Booted"), device("B")]
+    fixture.devices = [device("A", state: .booted), device("B")]
     await store.refresh()
     await probe.fail("A", error: failure("Boot readiness failed"))
     try require(
@@ -209,7 +212,7 @@ struct SimulatorStoreTests {
       "Attribute the error to the device that was started, even after selection changes.")
   }
 
-  static func device(_ id: String, state: String = "Shutdown") -> SimulatorDevice {
+  static func device(_ id: String, state: SimulatorState = .shutdown) -> SimulatorDevice {
     SimulatorDevice(id: id, name: "iPhone \(id)", runtime: "27.0", state: state)
   }
 

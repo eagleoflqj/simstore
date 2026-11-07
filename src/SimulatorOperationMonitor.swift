@@ -25,7 +25,7 @@ final class SimulatorOperationMonitor {
 
   func begin(on device: SimulatorDevice) -> UUID {
     let id = UUID()
-    guard device.state == "Booted" else { return id }
+    guard device.state == .booted else { return id }
     let wait = wait
     let task = Task { [weak self] in
       do {
@@ -63,7 +63,7 @@ final class SimulatorOperationMonitor {
   func synchronize(with devices: [SimulatorDevice]?) {
     // A failed scan does not confirm that any device has stopped or disappeared.
     guard let devices else { return }
-    let booted = Set(devices.filter { $0.state == "Booted" }.map(\.id))
+    let booted = Set(devices.filter { $0.state == .booted }.map(\.id))
     for deviceID in Set(active.values.map { $0.device.id }).subtracting(booted) {
       stop(deviceID: deviceID)
     }

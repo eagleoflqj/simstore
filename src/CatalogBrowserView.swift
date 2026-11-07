@@ -22,7 +22,7 @@ struct CatalogBrowserView: View {
   }
 
   private var availableApps: [CatalogApp]? {
-    guard device.state == "Booted", let catalog = store.catalog else { return nil }
+    guard device.state == .booted, let catalog = store.catalog else { return nil }
     switch section {
     case .discover: return installedApps.discoverableApps(in: catalog, for: device.id)
     case .installed: return installedApps.installedApps(in: catalog, for: device.id)
@@ -144,12 +144,12 @@ struct CatalogBrowserView: View {
         .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 3) {
         Text(verbatim: device.name).fontWeight(.medium)
-        Text(verbatim: "\(device.runtimeLabel) · \(device.stateLabel())")
+        Text(verbatim: "\(device.runtimeLabel) · \(device.state.label)")
           .font(.system(size: 11)).foregroundStyle(.secondary)
       }
       .lineLimit(1)
       Spacer(minLength: 12)
-      if device.canStart || device.canShutdown || device.isTransitioning {
+      if device.state.canStart || device.state.canShutdown || device.state.isTransitioning {
         SimulatorPowerButton(
           device: device,
           start: startSimulator, shutdown: shutdownSimulator)

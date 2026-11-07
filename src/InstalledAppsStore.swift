@@ -44,7 +44,7 @@ final class InstalledAppsStore {
   func updatableApps(
     in catalog: AppCatalog, for device: SimulatorDevice, includingRecent: Bool = true
   ) -> [CatalogApp]? {
-    guard device.state == "Booted", self.deviceID == device.id, applications != nil else {
+    guard device.state == .booted, self.deviceID == device.id, applications != nil else {
       return nil
     }
     return catalog.apps.filter { app in
@@ -122,7 +122,7 @@ final class InstalledAppsStore {
   }
 
   func canInstall(on device: SimulatorDevice) -> Bool {
-    device.state == "Booted" && deviceID == device.id && hasCurrentInventory
+    device.state == .booted && deviceID == device.id && hasCurrentInventory
       && applications != nil
   }
 

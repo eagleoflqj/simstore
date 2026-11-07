@@ -206,7 +206,7 @@ struct CatalogAppDetailView: View {
           }
           .buttonStyle(.bordered)
           .disabled(
-            device.state != "Booted"
+            device.state != .booted
               || installations.phase(appID: app.id, deviceID: device.id) != nil
           )
           .accessibilityIdentifier("detail-open")

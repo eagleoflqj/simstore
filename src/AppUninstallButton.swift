@@ -29,7 +29,7 @@ struct AppUninstallButton: View {
     }
     .buttonStyle(.bordered)
     .disabled(
-      device.state != "Booted"
+      device.state != .booted
         || installedApps.application(bundleID: app.bundleID, deviceID: device.id)?.isUserApplication
           != true
         || installations.phase(appID: app.id, deviceID: device.id) != nil

@@ -21,7 +21,7 @@ struct SimulatorOperationMonitorTests {
     }
   }
 
-  private static func device(_ id: String, state: String = "Booted") -> SimulatorDevice {
+  private static func device(_ id: String, state: SimulatorState = .booted) -> SimulatorDevice {
     SimulatorDevice(id: id, name: "iPhone \(id)", runtime: "27.0", state: state)
   }
 
@@ -78,14 +78,14 @@ struct SimulatorOperationMonitorTests {
     try await eventually { await delay.count == 1 }
     let other = monitor.begin(on: device("B"))
     try await eventually { await delay.count == 2 }
-    monitor.synchronize(with: [device("A", state: "Shutting Down"), device("B")])
+    monitor.synchronize(with: [device("A", state: .shuttingDown), device("B")])
     await delay.release(0)
     await delay.release(1)
     try await eventually { monitor.prompt?.id == other }
     monitor.end(first)
     monitor.synchronize(with: [])
     try require(monitor.prompt == nil, "A stopped or removed device must not retain a prompt.")
-    let stopped = monitor.begin(on: device("C", state: "Shutdown"))
+    let stopped = monitor.begin(on: device("C", state: .shutdown))
     monitor.end(stopped)
     try require(monitor.prompt == nil, "Do not monitor commands on a stopped simulator.")
   }

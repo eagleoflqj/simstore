@@ -2785,6 +2785,22 @@
         }
       }
     },
+    "Unknown State": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown State"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知状态"
+          }
+        }
+      }
+    },
     "Update": {
       "localizations": {
         "en": {

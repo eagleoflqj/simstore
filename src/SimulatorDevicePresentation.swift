@@ -18,14 +18,4 @@ extension SimulatorDevice {
   var symbolName: String { formFactor.symbolName }
 
   var runtimeLabel: String { String(localized: "iOS \(runtime)") }
-
-  func stateLabel() -> String {
-    switch state {
-    case "Booted": String(localized: "Booted")
-    case "Shutdown": String(localized: "Shutdown")
-    case "Booting": String(localized: "Booting")
-    case "Shutting Down": String(localized: "Shutting Down")
-    default: state
-    }
-  }
 }

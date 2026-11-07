@@ -27,7 +27,7 @@ struct SimulatorApplicationsTests {
 
   static let device = SimulatorDevice(
     id: "1140AE85-B348-46DB-AD13-2B18AAD499B4", name: "iPhone Test", runtime: "27.0",
-    state: "Booted")
+    state: .booted)
 
   static let listing = Data(
     """
@@ -116,7 +116,7 @@ struct SimulatorApplicationsTests {
       throw failure("Uninstall requires a fresh explicit User application type.")
     }
     let stopped = SimulatorDevice(
-      id: device.id, name: device.name, runtime: device.runtime, state: "Shutdown")
+      id: device.id, name: device.name, runtime: device.runtime, state: .shutdown)
     let probe = UninstallProbe(listing: listing)
     do {
       try await SimulatorApplications.uninstall(
@@ -215,7 +215,7 @@ struct SimulatorApplicationsTests {
   }
 
   static func rejectStoppedDevices() async throws {
-    for state in ["Shutdown", "Booting", "Shutting Down"] {
+    for state in [SimulatorState.shutdown, .booting, .shuttingDown, .unknown] {
       let stopped = SimulatorDevice(
         id: device.id, name: device.name, runtime: device.runtime, state: state)
       do {

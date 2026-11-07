@@ -39,10 +39,10 @@ struct SidebarSelectionTests {
         devices = (0..<20).map {
           SimulatorDevice(
             id: "device-\($0)", name: "iPhone \($0)", runtime: "27.0",
-            state: $0 == 12 ? "Booted" : "Shutdown")
+            state: $0 == 12 ? .booted : .shutdown)
         }
       }
-      guard let selected = devices.firstIndex(where: { $0.state == "Booted" }) else {
+      guard let selected = devices.firstIndex(where: { $0.state == .booted }) else {
         throw failure("The inventory needs an already booted iPhone.")
       }
       let state = SidebarState()

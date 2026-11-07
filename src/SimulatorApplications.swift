@@ -11,7 +11,7 @@ enum SimulatorApplications {
     _ bundle: URL, on device: SimulatorDevice,
     command: @escaping Command.Runner = Command.run
   ) async throws {
-    guard device.state == "Booted" else { throw SimulatorApplicationsError.notRunning }
+    guard device.state == .booted else { throw SimulatorApplicationsError.notRunning }
     try Task.checkCancellation()
     try await Task.detached(priority: .userInitiated) {
       _ = try Command.simctl(["install", device.id, bundle.path], using: command)
@@ -22,7 +22,7 @@ enum SimulatorApplications {
     _ bundleID: String, on device: SimulatorDevice,
     command: @escaping Command.Runner = Command.run
   ) async throws {
-    guard device.state == "Booted" else { throw SimulatorApplicationsError.notRunning }
+    guard device.state == .booted else { throw SimulatorApplicationsError.notRunning }
     try Task.checkCancellation()
     try await Task.detached(priority: .userInitiated) {
       _ = try Command.simctl(["launch", device.id, bundleID], using: command)
@@ -49,7 +49,7 @@ enum SimulatorApplications {
     on device: SimulatorDevice,
     command: @escaping Command.Runner = Command.run
   ) async throws -> [SimulatorApplication] {
-    guard device.state == "Booted" else { throw SimulatorApplicationsError.notRunning }
+    guard device.state == .booted else { throw SimulatorApplicationsError.notRunning }
     try Task.checkCancellation()
     let applications = try await Task.detached(priority: .userInitiated) {
       let data = try Command.simctl(["listapps", device.id], using: command)

@@ -60,7 +60,9 @@ final class SimulatorOperationMonitor {
     }
   }
 
-  func synchronize(with devices: [SimulatorDevice]) {
+  func synchronize(with devices: [SimulatorDevice]?) {
+    // A failed scan does not confirm that any device has stopped or disappeared.
+    guard let devices else { return }
     let booted = Set(devices.filter { $0.state == "Booted" }.map(\.id))
     for deviceID in Set(active.values.map { $0.device.id }).subtracting(booted) {
       stop(deviceID: deviceID)

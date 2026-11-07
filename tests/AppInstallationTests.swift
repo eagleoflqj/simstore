@@ -17,6 +17,7 @@ struct AppInstallationTests {
       try await uninstallJobs()
       try await uninstallFailure()
       try await recoveryPrompts()
+      try await discoveryFailureDuringUninstall()
       try versionActions()
       try await replacementPipeline()
       try await replacementWhileSwitchingDevices()
@@ -417,6 +418,54 @@ struct AppInstallationTests {
         monitor.prompt == nil && store.error(appID: app.id, deviceID: device.id) == nil,
         "A completed simulator command must clear its recovery prompt and finish normally.")
     }
+  }
+
+  static func discoveryFailureDuringUninstall() async throws {
+    @MainActor
+    final class DiscoveryState { var shouldFail = false }
+    let state = DiscoveryState()
+    let device = InstallationFixtures.device
+    let simulators = SimulatorStore(
+      discover: {
+        if state.shouldFail { throw InstallationFixtures.failure("Temporary discovery failure") }
+        return SimulatorDiscovery(
+          developerDirectory: URL(fileURLWithPath: "/Xcode.app/Contents/Developer"),
+          devices: [device])
+      }, boot: { _ in })
+    let monitor = SimulatorOperationMonitor(wait: {})
+    let commands = InstallationCommands(blocksUninstallation: true)
+    defer { commands.finish.signal() }
+    let store = AppInstallationStore(
+      installer: AppInstaller(command: commands.run), showDevice: { _ in },
+      operationMonitor: monitor)
+    await simulators.refresh()
+    monitor.synchronize(with: simulators.discovery?.devices)
+    store.uninstall(app: InstallationFixtures.app(), on: device)
+    try InstallationFixtures.require(
+      await Task.detached { commands.waitForStart() }.value, "Wait for the blocked uninstall.")
+    try await InstallationFixtures.eventually { monitor.prompt?.device.id == device.id }
+    let prompt = monitor.prompt
+    state.shouldFail = true
+    await simulators.refresh()
+    try InstallationFixtures.require(simulators.discovery == nil, "The scan must fail.")
+    monitor.synchronize(with: simulators.discovery?.devices)
+    try InstallationFixtures.require(
+      monitor.prompt == prompt, "A failed scan must preserve the blocked operation's prompt.")
+    state.shouldFail = false
+    await simulators.refresh()
+    monitor.synchronize(with: simulators.discovery?.devices)
+    let inventory = InstalledAppsStore(load: { _ in [] }, operationMonitor: monitor)
+    await inventory.refresh(for: simulators.selectedDevice!)
+    try InstallationFixtures.require(
+      simulators.selectedDevice?.state == "Booted" && monitor.prompt == prompt
+        && store.phase(appID: "example", deviceID: device.id) == .uninstalling,
+      "Retrying discovery and refreshing apps cannot lose the original stalled operation.")
+    commands.finish.signal()
+    try await InstallationFixtures.eventually {
+      store.phase(appID: "example", deviceID: device.id) == nil
+    }
+    try InstallationFixtures.require(
+      monitor.prompt == nil, "Clear the preserved prompt when the original operation completes.")
   }
 
   static func versionActions() throws {

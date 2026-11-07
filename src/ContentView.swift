@@ -156,7 +156,7 @@ struct ContentView: View {
     .task { await simulators.refresh() }
     .onChange(of: librarySection) { _, _ in installedApps.clearRecentInstallations() }
     .onChange(of: discovery?.devices) { _, devices in
-      operationMonitor.synchronize(with: devices ?? [])
+      operationMonitor.synchronize(with: devices)
     }
     .task(id: shouldMonitorState) {
       while shouldMonitorState && !Task.isCancelled {

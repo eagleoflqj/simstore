@@ -9,6 +9,7 @@ struct SimulatorOperationMonitorTests {
       try await finishedAndReplacedOperations()
       try await keepWaitingAndSeparateDevices()
       try await powerStateChanges()
+      try await failedScanBeforeTimeout()
       try await nativeAlertActions()
       print(
         "PASS: stalled operations, recovery prompts, waiting, completion, and exact shutdown targets."
@@ -86,6 +87,21 @@ struct SimulatorOperationMonitorTests {
     let stopped = monitor.begin(on: device("C", state: "Shutdown"))
     monitor.end(stopped)
     try require(monitor.prompt == nil, "Do not monitor commands on a stopped simulator.")
+  }
+
+  private static func failedScanBeforeTimeout() async throws {
+    let delay = MonitorDelay()
+    let monitor = SimulatorOperationMonitor(wait: { try await delay.wait() })
+    let operation = monitor.begin(on: device("A"))
+    try await eventually { await delay.count == 1 }
+    monitor.synchronize(with: nil)
+    await delay.release(0)
+    try await eventually { monitor.prompt?.id == operation }
+    monitor.synchronize(with: nil)
+    try require(
+      monitor.prompt?.id == operation, "A failed scan cannot dismiss an existing recovery prompt.")
+    monitor.synchronize(with: [])
+    try require(monitor.prompt == nil, "A successful empty scan must still remove missing devices.")
   }
 
   private static func nativeAlertActions() async throws {

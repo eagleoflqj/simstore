@@ -52,6 +52,7 @@ struct InstalledAppsStoreTests {
     try require(
       store.deviceID == "A" && store.bundleIDs == nil && store.isLoading,
       "A pending query must not expose an empty installation set.")
+    try require(!store.canInstall(on: selected), "Wait for the first confirmed inventory.")
     await probe.finish(0, with: .success(["io.example.Installed", "io.example.UNKNOWN"]))
     await initial.value
     try require(
@@ -61,12 +62,15 @@ struct InstalledAppsStoreTests {
       store.discoverableApps(in: catalog, for: "B") == nil,
       "A snapshot may only filter its own simulator.")
     let previous = store.applications
+    try require(store.canInstall(on: selected), "A successful inventory enables installations.")
     let failed = Task { await store.refresh(for: selected) }
     try await eventually { await probe.calls.count == 2 }
     try require(
       store.applications == previous && store.isLoading
         && store.discoverableApps(in: catalog, for: "A")?.map(\.id) == ["available"],
       "Keep the current collection visible while refreshing the same simulator.")
+    try require(
+      !store.canInstall(on: selected), "A retained inventory is only for display during refresh.")
     await probe.finish(1, with: .failure(failure("Cannot read installed apps")))
     await failed.value
     try require(
@@ -172,6 +176,8 @@ struct InstalledAppsStoreTests {
       !store.isLoading && store.bundleIDs == ["io.example.Active"] && store.error == nil,
       "A canceled refresh must preserve the last confirmed inventory, without publishing its response."
     )
+    try require(
+      !store.canInstall(on: selected), "Canceling a refresh cannot revalidate its cached versions.")
     let retry = Task { await store.refresh(for: selected) }
     try await eventually { await probe.calls.count == 4 }
     await probe.finish(3, with: .success([]))

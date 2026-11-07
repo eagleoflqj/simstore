@@ -22,6 +22,8 @@ struct AppInstallationTests {
       try await replacementPipeline()
       try await replacementWhileSwitchingDevices()
       try await AppUpdateBatchTests.run()
+      try await updateDuringInventoryRefresh()
+      try await AppInstallButtonTests.run()
       print(
         "PASS: package verification, safe extraction, Simulator binaries, install/open, per-device jobs, cancellation, failures, and cleanup."
       )
@@ -468,6 +470,54 @@ struct AppInstallationTests {
       monitor.prompt == nil, "Clear the preserved prompt when the original operation completes.")
   }
 
+  static func updateDuringInventoryRefresh() async throws {
+    let directory = try InstallationFixtures.temporaryDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let data = try archiveData(in: directory)
+    let version = InstallationFixtures.version(data: data, number: "1.0.0")
+    let app = InstallationFixtures.app(version: version)
+    let device = InstallationFixtures.device
+    let probe = RefreshUpdateInventory(bundleID: app.bundleID)
+    let inventory = InstalledAppsStore(load: { _ in try await probe.load() })
+    await inventory.refresh(for: device)
+    let refresh = Task { await inventory.refresh(for: device) }
+    try await probe.waitForPending()
+    try InstallationFixtures.require(
+      inventory.application(bundleID: app.bundleID, deviceID: device.id)?.version == "0.9.0",
+      "Retain the older version for display while the authoritative refresh is pending.")
+    let commands = InstallationCommands()
+    let store = AppInstallationStore(
+      installer: AppInstaller(
+        download: { _, destination, _ in try data.write(to: destination) },
+        command: commands.run, temporaryDirectory: directory.appending(component: "work")),
+      showDevice: { _ in },
+      didReplace: { inventory.recordReplacement($0, deviceID: $1) })
+    store.updateAll(
+      in: AppCatalog(schemaVersion: 1, apps: [app]), installedApps: inventory, on: device)
+    try await InstallationFixtures.eventually {
+      store.updateBatch(deviceID: device.id)?.isRunning != true
+    }
+    let installs = commands.calls.filter { $0.prefix(2) == ["simctl", "install"] }.count
+    try InstallationFixtures.require(inventory.isLoading, "Keep the refresh pending for the test.")
+    try InstallationFixtures.require(
+      installs == 0 && store.updateBatch(deviceID: device.id) == nil,
+      "Do not start Update All from a retained snapshot before refresh completes.")
+    await probe.finish()
+    await refresh.value
+    try InstallationFixtures.require(
+      store.error(appID: app.id, deviceID: device.id) == nil,
+      "Use a valid package and installation pipeline.")
+    let actualAction = AppInstallationAction.forVersion(
+      version, installed: inventory.application(bundleID: app.bundleID, deviceID: device.id),
+      allowsChanges: true)
+    store.updateAll(
+      in: AppCatalog(schemaVersion: 1, apps: [app]), installedApps: inventory, on: device)
+    try InstallationFixtures.require(
+      actualAction == .downgrade && actualAction.needsConfirmation
+        && store.updateBatch(deviceID: device.id) == nil,
+      "The refreshed newer version requires downgrade confirmation and cannot enter Update All.")
+  }
+
   static func versionActions() throws {
     let version = InstallationFixtures.version()
     let cases: [(String?, AppInstallationAction)] = [
@@ -681,5 +731,34 @@ private actor InstallationDownloadGate {
       }
       try await Task.sleep(for: .milliseconds(1))
     }
+  }
+}
+
+actor RefreshUpdateInventory {
+  let bundleID: String
+  private var calls = 0
+  private var pending: CheckedContinuation<[SimulatorApplication], Never>?
+  init(bundleID: String) { self.bundleID = bundleID }
+  func load() async throws -> [SimulatorApplication] {
+    calls += 1
+    if calls == 1 {
+      return [SimulatorApplication(bundleID: bundleID, version: "0.9.0", isUserApplication: true)]
+    }
+    return await withCheckedContinuation { pending = $0 }
+  }
+  func waitForPending() async throws {
+    let deadline = ContinuousClock.now.advanced(by: .seconds(3))
+    while pending == nil {
+      guard ContinuousClock.now < deadline else {
+        throw InstallationFixtures.failure("Wait for background inventory refresh.")
+      }
+      try await Task.sleep(for: .milliseconds(1))
+    }
+  }
+  func finish(version: String = "2.0.0") {
+    pending?.resume(returning: [
+      SimulatorApplication(bundleID: bundleID, version: version, isUserApplication: true)
+    ])
+    pending = nil
   }
 }

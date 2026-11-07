@@ -198,6 +198,7 @@ final class AppInstallationStore {
   func pendingUpdates(
     in catalog: AppCatalog, installedApps: InstalledAppsStore, on device: SimulatorDevice
   ) -> [AppUpdateBatch.Item] {
+    guard installedApps.canInstall(on: device) else { return [] }
     let apps = installedApps.updatableApps(in: catalog, for: device, includingRecent: false) ?? []
     return apps.compactMap { app in
       guard phase(appID: app.id, deviceID: device.id) == nil,

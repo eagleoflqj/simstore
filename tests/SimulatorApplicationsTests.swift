@@ -11,6 +11,7 @@ struct SimulatorApplicationsTests {
       try await querySelectedDevice()
       try await preserveCommandFailure()
       try await rejectStoppedDevices()
+      try await rejectUnknownActions()
       try await cancelledBeforeQuery()
       try await cancelledDuringQuery()
       try await uninstallSelectedUserApp()
@@ -227,6 +228,23 @@ struct SimulatorApplicationsTests {
       }
       throw failure("A non-booted simulator must have an unknown inventory.")
     }
+  }
+
+  static func rejectUnknownActions() async throws {
+    let unknown = SimulatorDevice(
+      id: device.id, name: device.name, runtime: device.runtime, state: .unknown)
+    let command: Command.Runner = { _, _ in
+      throw failure("An unknown simulator state must not invoke an app command.")
+    }
+    do {
+      try await SimulatorApplications.install(
+        URL(fileURLWithPath: "/Example.app"), on: unknown, command: command)
+      throw failure("An unknown simulator state must reject installation.")
+    } catch SimulatorApplicationsError.notRunning {}
+    do {
+      try await SimulatorApplications.launch("com.example.First", on: unknown, command: command)
+      throw failure("An unknown simulator state must reject launching an app.")
+    } catch SimulatorApplicationsError.notRunning {}
   }
 
   static func cancelledBeforeQuery() async throws {

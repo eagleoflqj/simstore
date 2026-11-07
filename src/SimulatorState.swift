@@ -1,6 +1,6 @@
 import Foundation
 
-enum SimulatorState: String, CaseIterable, Decodable, Sendable {
+enum SimulatorState: String, Decodable, Sendable {
   case shutdown = "Shutdown"
   case booting = "Booting"
   case booted = "Booted"
@@ -12,6 +12,8 @@ enum SimulatorState: String, CaseIterable, Decodable, Sendable {
     self = Self(rawValue: value) ?? .unknown
   }
 
+  // A boot request can wait for an existing boot to finish.
+  // The power button stays disabled during that transition.
   var canStart: Bool { self == .shutdown || self == .booting }
 
   var canShutdown: Bool { self == .booted }

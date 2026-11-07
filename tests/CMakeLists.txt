@@ -162,6 +162,17 @@ target_compile_options(SimStorePowerButtonTest PRIVATE -parse-as-library)
 add_test(NAME simulator-power-button COMMAND SimStorePowerButtonTest)
 set_tests_properties(simulator-power-button PROPERTIES TIMEOUT 15 RUN_SERIAL TRUE)
 
+add_executable(SimStoreSidebarSelectionTest SidebarSelectionTests.swift
+    "${PROJECT_SOURCE_DIR}/src/SidebarView.swift"
+    "${PROJECT_SOURCE_DIR}/src/LibrarySection.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorDevicePresentation.swift"
+    "${PROJECT_SOURCE_DIR}/src/Command.swift"
+)
+target_compile_options(SimStoreSidebarSelectionTest PRIVATE -parse-as-library)
+add_test(NAME sidebar-selection COMMAND SimStoreSidebarSelectionTest)
+set_tests_properties(sidebar-selection PROPERTIES TIMEOUT 15 RUN_SERIAL TRUE)
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_executable(SimStorePreviewScenarioTest PreviewScenarioTests.swift
         "${PROJECT_SOURCE_DIR}/src/PreviewScenario.swift"

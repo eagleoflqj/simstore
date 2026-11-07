@@ -53,7 +53,7 @@ struct SidebarView: View {
                 VStack(alignment: .leading, spacing: 4) {
                   Text(device.name).font(.system(size: 12, weight: .medium))
                   Text(
-                    "\(device.runtimeLabel) · \(device.stateLabel())"
+                    "\(device.runtimeLabel) · \(device.state.label)"
                   )
                   .font(.system(size: 10))
                   .foregroundStyle(.secondary)

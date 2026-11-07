@@ -48,6 +48,7 @@ struct LocalizationTests {
         ("Shutdown", "Shutdown", "已关机"),
         ("Booting", "Booting", "正在启动"),
         ("Shutting Down", "Shutting Down", "正在关机"),
+        ("Unknown State", "Unknown State", "未知状态"),
         ("All Apps", "All Apps", "全部应用"),
         ("Search apps", "Search apps", "搜索应用"),
         ("Refresh Catalog", "Refresh Catalog", "刷新目录"),

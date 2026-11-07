@@ -16,7 +16,7 @@ struct SimulatorPowerButtonTests {
       var shutdowns = 0
       for size: ControlSize in [.regular, .small] {
         var results: [(frame: CGRect, enabled: Bool)] = []
-        for state in ["Shutdown", "Booting", "Booted", "Shutting Down"] {
+        for state in [SimulatorState.shutdown, .booting, .booted, .shuttingDown, .unknown] {
           let device = SimulatorDevice(id: "A", name: "iPhone", runtime: "27.0", state: state)
           let host = NSHostingView(
             rootView: SimulatorPowerButton(
@@ -32,7 +32,7 @@ struct SimulatorPowerButtonTests {
           button.performClick(nil)
         }
         try require(
-          results.map(\.enabled) == [true, false, true, false],
+          results.map(\.enabled) == [true, false, true, false, false],
           "Power actions depend only on device state; a booted simulator can always shut down.")
         for (idle, pending) in [(0, 1), (2, 3)] {
           let a = results[idle].frame

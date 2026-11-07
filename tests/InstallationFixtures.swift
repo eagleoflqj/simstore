@@ -3,7 +3,7 @@ import Foundation
 
 enum InstallationFixtures {
   static let device = SimulatorDevice(
-    id: "device-A", name: "iPhone", runtime: "27.0", state: "Booted")
+    id: "device-A", name: "iPhone", runtime: "27.0", state: .booted)
 
   static func temporaryDirectory(in parent: URL = .temporaryDirectory) throws -> URL {
     let directory = parent.appending(component: "installation-test-\(UUID())")

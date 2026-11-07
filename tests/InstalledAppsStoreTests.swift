@@ -188,9 +188,9 @@ struct InstalledAppsStoreTests {
   static func refreshedDeviceState() async throws {
     let probe = InventoryProbe()
     let store = InstalledAppsStore(load: { try await probe.load($0) })
-    let stopped = Task { await store.refresh(for: device("A", state: "Shutdown")) }
+    let stopped = Task { await store.refresh(for: device("A", state: .shutdown)) }
     try await eventually { await probe.calls.count == 1 }
-    let booted = Task { await store.refresh(for: device("A", state: "Booted")) }
+    let booted = Task { await store.refresh(for: device("A", state: .booted)) }
     try await eventually { await probe.calls.count == 2 }
     await probe.finish(1, with: .success(["io.example.New"]))
     await booted.value
@@ -199,7 +199,7 @@ struct InstalledAppsStoreTests {
     try require(
       store.bundleIDs == ["io.example.New"],
       "A device state change must query afresh rather than join an older shutdown query.")
-    let shuttingDown = Task { await store.refresh(for: device("A", state: "Shutting Down")) }
+    let shuttingDown = Task { await store.refresh(for: device("A", state: .shuttingDown)) }
     try await eventually { await probe.calls.count == 3 }
     try require(
       store.bundleIDs == nil && store.isLoading,
@@ -208,7 +208,7 @@ struct InstalledAppsStoreTests {
     await shuttingDown.value
   }
 
-  static func device(_ id: String, state: String = "Booted") -> SimulatorDevice {
+  static func device(_ id: String, state: SimulatorState = .booted) -> SimulatorDevice {
     SimulatorDevice(id: id, name: "iPhone 17 Pro", runtime: "27.0", state: state)
   }
 
@@ -384,7 +384,7 @@ struct InstalledAppsStoreTests {
       "The sidebar count includes pending compatible updates.")
     try require(
       store.updatableApps(in: current, for: device("B")) == nil
-        && store.updatableApps(in: current, for: device("A", state: "Shutdown")) == nil,
+        && store.updatableApps(in: current, for: device("A", state: .shutdown)) == nil,
       "Updates belong to a known running device.")
     store.recordReplacement(application("io.example.INSTALLED", version: "1.0.0"), deviceID: "A")
     try require(

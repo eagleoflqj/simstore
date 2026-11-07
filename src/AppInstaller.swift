@@ -12,7 +12,7 @@ struct AppInstaller: Sendable {
     app: CatalogApp, version: CatalogVersion, on device: SimulatorDevice,
     progress: @escaping Progress
   ) async throws {
-    guard device.state == "Booted" else { throw SimulatorApplicationsError.notRunning }
+    guard device.state == .booted else { throw SimulatorApplicationsError.notRunning }
     try Task.checkCancellation()
     let directory = temporaryDirectory.appending(
       component: "\(AppConfiguration.applicationIdentifier)-\(UUID().uuidString)")

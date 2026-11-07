@@ -100,7 +100,7 @@ enum AppUpdateBatchTests {
       commands.installs.allSatisfy { $0.deviceID == device.id }, "Keep the captured target device.")
     try fixture.requireClean()
     let stopped = SimulatorDevice(
-      id: device.id, name: device.name, runtime: device.runtime, state: "Shutdown")
+      id: device.id, name: device.name, runtime: device.runtime, state: .shutdown)
     try InstallationFixtures.require(
       store.pendingUpdates(in: catalog, installedApps: inventory, on: stopped).isEmpty,
       "A stopped simulator cannot be updated.")
@@ -226,7 +226,7 @@ enum AppUpdateBatchTests {
     let commands = BatchCommands()
     let inventory = fixture.inventory()
     let a = InstallationFixtures.device
-    let b = SimulatorDevice(id: "device-B", name: "iPad", runtime: a.runtime, state: "Booted")
+    let b = SimulatorDevice(id: "device-B", name: "iPad", runtime: a.runtime, state: .booted)
     await inventory.refresh(for: a)
     let store = fixture.store(downloads: downloads, commands: commands, inventory: inventory)
     store.updateAll(in: fixture.catalog, installedApps: inventory, on: a)
@@ -284,7 +284,7 @@ enum AppUpdateBatchTests {
     store.install(app: manual, version: manual.latestVersion, on: device)
     try await downloads.waitForCount(2)
     let other = SimulatorDevice(
-      id: "device-B", name: "iPhone B", runtime: device.runtime, state: "Booted")
+      id: "device-B", name: "iPhone B", runtime: device.runtime, state: .booted)
     store.install(app: manual, version: manual.latestVersion, on: other)
     try await downloads.waitForCount(3)
 
@@ -298,7 +298,7 @@ enum AppUpdateBatchTests {
         && store.phase(appID: "manual", deviceID: device.id) == .canceling,
       "Cancel both batch and manual downloads and release queued apps immediately.")
     try InstallationFixtures.require(
-      await shutdown.value && simulators.selectedDevice?.state == "Shutdown",
+      await shutdown.value && simulators.selectedDevice?.state == .shutdown,
       "Shutdown must complete before canceled downloads finish cleaning up.")
     try InstallationFixtures.require(
       store.phase(appID: "manual", deviceID: other.id) == .downloading(0),
@@ -332,7 +332,7 @@ enum AppUpdateBatchTests {
 }
 
 private actor BatchSimulator {
-  private var state = "Booted"
+  private var state = SimulatorState.booted
 
   var device: SimulatorDevice {
     SimulatorDevice(id: "device-A", name: "iPhone", runtime: "27.0", state: state)
@@ -340,7 +340,7 @@ private actor BatchSimulator {
 
   func shutdown(_ id: String) throws {
     try InstallationFixtures.require(id == "device-A", "Shut down only the selected simulator.")
-    state = "Shutdown"
+    state = .shutdown
   }
 }
 

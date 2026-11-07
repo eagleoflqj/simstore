@@ -81,6 +81,7 @@ add_executable(SimStoreInstallationTest AppInstallationTests.swift AppInstallBut
     "${PROJECT_SOURCE_DIR}/src/InstalledAppsStore.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorApplications.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorState.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorStore.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorControl.swift"
     "${PROJECT_SOURCE_DIR}/src/Command.swift"
@@ -91,6 +92,7 @@ set_tests_properties(installation PROPERTIES TIMEOUT 30 RUN_SERIAL TRUE)
 
 add_executable(SimStoreDiscoveryTest SimulatorDiscoveryTests.swift
     "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorState.swift"
     "${PROJECT_SOURCE_DIR}/src/Command.swift"
 )
 add_test(NAME simulator-discovery COMMAND SimStoreDiscoveryTest)
@@ -108,6 +110,7 @@ set_tests_properties(simulator-control PROPERTIES TIMEOUT 15)
 add_executable(SimStoreApplicationsTest SimulatorApplicationsTests.swift
     "${PROJECT_SOURCE_DIR}/src/SimulatorApplications.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorState.swift"
     "${PROJECT_SOURCE_DIR}/src/Command.swift"
 )
 target_compile_options(SimStoreApplicationsTest PRIVATE -parse-as-library)
@@ -119,6 +122,7 @@ add_executable(SimStoreInstalledAppsTest InstalledAppsStoreTests.swift
     "${PROJECT_SOURCE_DIR}/src/InstalledAppsStore.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorApplications.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorState.swift"
     "${PROJECT_SOURCE_DIR}/src/Command.swift"
     "${PROJECT_SOURCE_DIR}/src/AppCatalog.swift"
 )
@@ -130,6 +134,7 @@ add_executable(SimStoreOperationMonitorTest SimulatorOperationMonitorTests.swift
     "${PROJECT_SOURCE_DIR}/src/SimulatorOperationMonitor.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorRecoveryAlert.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorState.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorStore.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorControl.swift"
     "${PROJECT_SOURCE_DIR}/src/Command.swift"
@@ -140,6 +145,7 @@ set_tests_properties(simulator-operation-monitor PROPERTIES TIMEOUT 20 RUN_SERIA
 
 add_executable(SimStoreStoreTest SimulatorStoreTests.swift SimulatorShutdownTests.swift
     "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorState.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorStore.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorControl.swift"
     "${PROJECT_SOURCE_DIR}/src/Command.swift"
@@ -164,6 +170,7 @@ add_executable(SimStorePowerButtonTest SimulatorPowerButtonTests.swift
     "${PROJECT_SOURCE_DIR}/src/SimulatorPowerButton.swift"
     "${PROJECT_SOURCE_DIR}/src/StableSizeView.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorState.swift"
     "${PROJECT_SOURCE_DIR}/src/Command.swift"
 )
 target_compile_options(SimStorePowerButtonTest PRIVATE -parse-as-library)
@@ -174,6 +181,7 @@ add_executable(SimStoreSidebarSelectionTest SidebarSelectionTests.swift
     "${PROJECT_SOURCE_DIR}/src/SidebarView.swift"
     "${PROJECT_SOURCE_DIR}/src/LibrarySection.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+    "${PROJECT_SOURCE_DIR}/src/SimulatorState.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorDevicePresentation.swift"
     "${PROJECT_SOURCE_DIR}/src/Command.swift"
 )
@@ -185,6 +193,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_executable(SimStorePreviewScenarioTest PreviewScenarioTests.swift
         "${PROJECT_SOURCE_DIR}/src/PreviewScenario.swift"
         "${PROJECT_SOURCE_DIR}/src/SimulatorDiscovery.swift"
+        "${PROJECT_SOURCE_DIR}/src/SimulatorState.swift"
         "${PROJECT_SOURCE_DIR}/src/Command.swift"
     )
     target_compile_definitions(SimStorePreviewScenarioTest PRIVATE DEBUG)

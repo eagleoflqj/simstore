@@ -71,10 +71,10 @@ struct SimulatorDetailView: View {
           .help(Text(verbatim: device.name))
         HStack(spacing: 8) {
           Circle()
-            .fill(device.state == "Booted" ? Color.green : Color.secondary)
+            .fill(device.state == .booted ? Color.green : Color.secondary)
             .frame(width: 6, height: 6)
             .accessibilityHidden(true)
-          Text(verbatim: device.stateLabel())
+          Text(verbatim: device.state.label)
         }
         .font(.system(size: 12, weight: .medium))
         .foregroundStyle(.secondary)
@@ -98,7 +98,7 @@ struct SimulatorDetailView: View {
       .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 12))
 
       HStack(spacing: 10) {
-        if device.canStart || device.canShutdown || device.isTransitioning {
+        if device.state.canStart || device.state.canShutdown || device.state.isTransitioning {
           SimulatorPowerButton(
             device: device, start: start, shutdown: shutdown)
         }

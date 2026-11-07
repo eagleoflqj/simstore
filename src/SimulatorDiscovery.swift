@@ -10,13 +10,7 @@ struct SimulatorDevice: Identifiable, Equatable, Sendable {
   let id: String
   let name: String
   let runtime: String
-  let state: String
-
-  var canStart: Bool { state == "Shutdown" || state == "Booting" }
-
-  var canShutdown: Bool { state == "Booted" }
-
-  var isTransitioning: Bool { state == "Booting" || state == "Shutting Down" }
+  let state: SimulatorState
 }
 
 struct SimulatorDiscovery: Sendable {
@@ -85,7 +79,7 @@ struct SimulatorDiscovery: Sendable {
       struct Device: Decodable {
         let udid: String
         let name: String
-        let state: String
+        let state: SimulatorState
         let isAvailable: Bool
       }
       let devices: [String: [Device]]

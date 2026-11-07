@@ -47,7 +47,7 @@ struct AppInstallButton: View {
 
   private var enabled: Bool {
     if let phase { return phase.canCancel }
-    guard device.state == "Booted", let isInstalled else { return false }
+    guard device.state == .booted, let isInstalled else { return false }
     if idleAction == .open { return isInstalled }
     guard installedApps.canInstall(on: device) else { return false }
     return allowsIncompatible || version.isCompatible(with: device.runtime)

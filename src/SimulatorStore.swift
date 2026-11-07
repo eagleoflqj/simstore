@@ -43,11 +43,11 @@ final class SimulatorStore {
     return SimulatorDiscovery(
       developerDirectory: snapshot.developerDirectory,
       devices: snapshot.devices.map { device in
-        let state: String
+        let state: SimulatorState
         if shuttingDownDeviceIDs.contains(device.id) {
-          state = "Shutting Down"
+          state = .shuttingDown
         } else if startingDeviceIDs.contains(device.id) {
-          state = "Booting"
+          state = .booting
         } else {
           return device
         }
@@ -84,7 +84,7 @@ final class SimulatorStore {
       if !discovery.devices.contains(where: { $0.id == selectedDeviceID }) {
         let devices = self.discovery?.devices ?? []
         selectedDeviceID =
-          devices.first(where: { $0.state == "Booted" })?.id ?? devices.first?.id
+          devices.first(where: { $0.state == .booted })?.id ?? devices.first?.id
       }
     } catch is CancellationError {
     } catch {
@@ -95,7 +95,7 @@ final class SimulatorStore {
   @discardableResult
   func startDevice(_ id: String) async -> Bool {
     guard let device = snapshot?.devices.first(where: { $0.id == id }),
-      device.canStart,
+      device.state.canStart,
       !shuttingDownDeviceIDs.contains(device.id),
       startingDeviceIDs.insert(device.id).inserted
     else { return false }
@@ -104,7 +104,7 @@ final class SimulatorStore {
     do {
       try await boot(device.id)
       try await refreshAfterControl()
-      return snapshot?.devices.contains(where: { $0.id == device.id && $0.state == "Booted" })
+      return snapshot?.devices.contains(where: { $0.id == device.id && $0.state == .booted })
         == true
     } catch is CancellationError {
       return false
@@ -117,7 +117,7 @@ final class SimulatorStore {
 
   @discardableResult
   func shutdownDevice(_ id: String) -> Task<Bool, Never>? {
-    guard let device = snapshot?.devices.first(where: { $0.id == id }), device.canShutdown,
+    guard let device = snapshot?.devices.first(where: { $0.id == id }), device.state.canShutdown,
       !startingDeviceIDs.contains(device.id), shuttingDownDeviceIDs.insert(device.id).inserted
     else { return nil }
     shutdownError = nil
@@ -127,7 +127,7 @@ final class SimulatorStore {
         try Task.checkCancellation()
         try await shutdown(device.id)
         try await refreshAfterControl()
-        return snapshot?.devices.contains(where: { $0.id == device.id && $0.state == "Shutdown" })
+        return snapshot?.devices.contains(where: { $0.id == device.id && $0.state == .shutdown })
           == true
       } catch is CancellationError {
         return false

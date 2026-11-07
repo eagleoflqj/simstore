@@ -1,6 +1,7 @@
 import Foundation
 
 enum AppInstallationPhase: Equatable, Sendable {
+  case queued
   case downloading(Int64)
   case verifying
   case extracting
@@ -11,13 +12,14 @@ enum AppInstallationPhase: Equatable, Sendable {
 
   var canCancel: Bool {
     switch self {
-    case .downloading, .verifying, .extracting: true
+    case .queued, .downloading, .verifying, .extracting: true
     case .installing, .canceling, .opening, .uninstalling: false
     }
   }
 
   var title: String {
     switch self {
+    case .queued: String(localized: "Waiting…")
     case .downloading: String(localized: "Downloading…")
     case .verifying: String(localized: "Verifying…")
     case .extracting: String(localized: "Preparing App…")

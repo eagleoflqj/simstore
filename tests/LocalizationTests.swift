@@ -57,6 +57,10 @@ struct LocalizationTests {
         ("Update and Restart", "Update and Restart", "更新并重新启动"),
         ("Install Nightly and Restart", "Install Nightly and Restart", "安装每夜构建并重新启动"),
         ("SimStore Is Up to Date", "SimStore Is Up to Date", "SimStore 已是最新版本"),
+        ("Update All", "Update All", "全部更新"),
+        ("Updating…", "Updating…", "正在更新…"),
+        ("Waiting…", "Waiting…", "等待中…"),
+        ("Cancel All", "Cancel All", "全部取消"),
       ]
       for (key, source, translated) in labels {
         try expect(
@@ -64,6 +68,14 @@ struct LocalizationTests {
       }
 
       let tool = "Device Hub"
+      let updated = 2
+      let failed = 1
+      let canceled = 3
+      try expect(
+        String(
+          localized: "\(updated) updated, \(failed) failed, \(canceled) canceled", bundle: bundle,
+          locale: locale),
+        english ? "2 updated, 1 failed, 3 canceled" : "2 个已更新，1 个失败，3 个已取消")
       let appName = "LocalSend"
       let targetName = "iPhone 测试"
       try expect(

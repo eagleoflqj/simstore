@@ -31,6 +31,10 @@ struct CatalogBrowserView: View {
     }
   }
 
+  private var updateBatch: AppUpdateBatch? {
+    installations.updateBatch(deviceID: device.id)
+  }
+
   private var apps: [CatalogApp] {
     (availableApps ?? []).filter { app in
       (category.isEmpty || app.categories.contains(category))
@@ -45,6 +49,15 @@ struct CatalogBrowserView: View {
     VStack(alignment: .leading, spacing: 20) {
       heading
       simulatorSummary
+      if section == .updates, let batch = updateBatch {
+        AppUpdateBatchView(
+          batch: batch,
+          phase: batch.currentApp.flatMap {
+            installations.phase(appID: $0.id, deviceID: device.id)
+          },
+          cancel: { installations.cancelAllUpdates(deviceID: device.id) },
+          dismiss: { installations.dismissUpdateBatch(deviceID: device.id) })
+      }
       if let catalog = store.catalog {
         if let error = store.error {
           HStack(alignment: .top, spacing: 10) {
@@ -168,6 +181,16 @@ struct CatalogBrowserView: View {
         Spacer(minLength: 0)
         Text(verbatim: "\(apps.count) / \(availableApps.count)")
           .monospacedDigit().foregroundStyle(.secondary)
+        if section == .updates {
+          AppUpdateAllButton(
+            isUpdating: updateBatch?.isRunning == true,
+            canUpdate: !installations.pendingUpdates(
+              in: catalog, installedApps: installedApps, on: device
+            ).isEmpty
+          ) {
+            installations.updateAll(in: catalog, installedApps: installedApps, on: device)
+          }
+        }
         CatalogRefreshButton(isLoading: store.isLoading, refresh: refresh)
           .labelStyle(.iconOnly)
       }

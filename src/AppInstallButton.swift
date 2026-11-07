@@ -36,7 +36,7 @@ struct AppInstallButton: View {
 
   private var action: AppInstallationAction {
     switch phase {
-    case .downloading, .verifying, .extracting: .cancel
+    case .queued, .downloading, .verifying, .extracting: .cancel
     case .installing: .installing
     case .canceling: .canceling
     case .opening: .opening

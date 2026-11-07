@@ -20,13 +20,24 @@ struct CatalogAppDetailView: View {
     self.device = device
     self.installedApps = installedApps
     self.installations = installations
-    _versionID = State(initialValue: app.recommendedVersion(for: device.runtime).version)
+    _versionID = State(
+      initialValue: installations.activeUpdateVersion(appID: app.id, deviceID: device.id)?.version
+        ?? app.recommendedVersion(for: device.runtime).version)
   }
 
   private var runtime: String { device.runtime }
 
   private var version: CatalogVersion {
-    app.versions.first(where: { $0.version == versionID }) ?? app.recommendedVersion(for: runtime)
+    installations.activeUpdateVersion(appID: app.id, deviceID: device.id)
+      ?? app.versions.first(where: { $0.version == versionID })
+      ?? app.recommendedVersion(for: runtime)
+  }
+
+  private var versions: [CatalogVersion] {
+    guard let active = installations.activeUpdateVersion(appID: app.id, deviceID: device.id),
+      !app.versions.contains(where: { $0.id == active.id })
+    else { return app.versions }
+    return [active] + app.versions
   }
 
   private var contentHeight: CGFloat {
@@ -66,7 +77,7 @@ struct CatalogAppDetailView: View {
             GridRow {
               Text("Version").foregroundStyle(.secondary)
               Picker(selection: $versionID) {
-                ForEach(app.versions) { build in
+                ForEach(versions) { build in
                   Text(verbatim: build.version).tag(build.version)
                 }
               } label: {
@@ -238,32 +249,5 @@ private struct DetailContentHeight: PreferenceKey {
 
   static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
     value = max(value, nextValue())
-  }
-}
-
-private struct DetailsDisclosureStyle: DisclosureGroupStyle {
-  func makeBody(configuration: Configuration) -> some View {
-    VStack(alignment: .leading, spacing: 0) {
-      Button {
-        withAnimation { configuration.isExpanded.toggle() }
-      } label: {
-        HStack(spacing: 6) {
-          Image(systemName: "chevron.right")
-            .font(.system(size: 10, weight: .semibold))
-            .rotationEffect(.degrees(configuration.isExpanded ? 90 : 0))
-            .accessibilityHidden(true)
-          configuration.label
-          Spacer(minLength: 0)
-        }
-        .padding(.vertical, 4)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .contentShape(Rectangle())
-      }
-      .buttonStyle(.plain)
-
-      if configuration.isExpanded {
-        configuration.content.padding(.leading, 16)
-      }
-    }
   }
 }

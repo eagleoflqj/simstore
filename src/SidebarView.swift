@@ -42,39 +42,49 @@ struct SidebarView: View {
         .fixedSize(horizontal: false, vertical: true)
 
       if let discovery, !discovery.devices.isEmpty {
-        List(
-          selection: Binding(
-            get: { selectedDeviceID },
-            set: { if let id = $0 { selectDevice(id) } })
-        ) {
-          ForEach(discovery.devices) { device in
-            Label {
-              VStack(alignment: .leading, spacing: 4) {
-                Text(device.name).font(.system(size: 12, weight: .medium))
-                Text(
-                  "\(device.runtimeLabel) · \(device.stateLabel())"
-                )
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
+        ScrollViewReader { proxy in
+          List(
+            selection: Binding(
+              get: { selectedDeviceID },
+              set: { if let id = $0 { selectDevice(id) } })
+          ) {
+            ForEach(discovery.devices) { device in
+              Label {
+                VStack(alignment: .leading, spacing: 4) {
+                  Text(device.name).font(.system(size: 12, weight: .medium))
+                  Text(
+                    "\(device.runtimeLabel) · \(device.stateLabel())"
+                  )
+                  .font(.system(size: 10))
+                  .foregroundStyle(.secondary)
+                }
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(maxWidth: .infinity, alignment: .leading)
+              } icon: {
+                Image(systemName: device.symbolName)
+                  .foregroundStyle(.secondary)
+                  .frame(width: 20)
               }
-              .lineLimit(1)
-              .truncationMode(.tail)
-              .frame(maxWidth: .infinity, alignment: .leading)
-            } icon: {
-              Image(systemName: device.symbolName)
-                .foregroundStyle(.secondary)
-                .frame(width: 20)
+              .tag(device.id)
+              .id(device.id)
+              .listRowInsets(EdgeInsets(top: 10, leading: 12, bottom: 10, trailing: 12))
+              .accessibilityElement(children: .combine)
+              .help(Text(verbatim: device.id))
             }
-            .tag(device.id)
-            .listRowInsets(EdgeInsets(top: 10, leading: 12, bottom: 10, trailing: 12))
-            .accessibilityElement(children: .combine)
-            .help(Text(verbatim: device.id))
+          }
+          .listStyle(.sidebar)
+          .scrollContentBackground(.hidden)
+          .accessibilityLabel(simulatorListTitle)
+          .frame(minHeight: 0)
+          .task(id: selectedDeviceID) {
+            guard let id = selectedDeviceID else { return }
+            // The native list needs its first layout before it can reveal a row.
+            await Task.yield()
+            guard !Task.isCancelled else { return }
+            proxy.scrollTo(id, anchor: .center)
           }
         }
-        .listStyle(.sidebar)
-        .scrollContentBackground(.hidden)
-        .accessibilityLabel(simulatorListTitle)
-        .frame(minHeight: 0)
       } else {
         VStack(alignment: .leading, spacing: 7) {
           Text(

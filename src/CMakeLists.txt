@@ -22,6 +22,8 @@ add_executable(SimStore MACOSX_BUNDLE
     AppInstaller.swift
     AppInstallationPhase.swift
     AppInstallationStore.swift
+    AppUpdateBatch.swift
+    AppUpdateBatchView.swift
     AppInstallationAction.swift
     AppInstallButton.swift
     AppUninstallButton.swift
@@ -34,6 +36,7 @@ add_executable(SimStore MACOSX_BUNDLE
     CatalogAppCard.swift
     CatalogAppDetailView.swift
     CopyableText.swift
+    DetailsDisclosureStyle.swift
     SidebarView.swift
     NoSimulatorsView.swift
     MissingXcodeView.swift

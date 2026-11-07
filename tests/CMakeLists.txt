@@ -52,7 +52,7 @@ target_compile_options(SimStoreIconCacheTest PRIVATE -parse-as-library)
 add_test(NAME icon-cache COMMAND SimStoreIconCacheTest)
 set_tests_properties(icon-cache PROPERTIES TIMEOUT 20)
 
-add_executable(SimStoreInstallationTest AppInstallationTests.swift AppDownloadTests.swift AppPackageTests.swift InstallationFixtures.swift
+add_executable(SimStoreInstallationTest AppInstallationTests.swift AppDownloadTests.swift AppPackageTests.swift AppUpdateBatchTests.swift InstallationFixtures.swift
     "${PROJECT_SOURCE_DIR}/src/AppCatalog.swift"
     "${PROJECT_SOURCE_DIR}/src/AppConfiguration.swift"
     "${PROJECT_SOURCE_DIR}/src/AppDownload.swift"
@@ -61,6 +61,7 @@ add_executable(SimStoreInstallationTest AppInstallationTests.swift AppDownloadTe
     "${PROJECT_SOURCE_DIR}/src/AppInstaller.swift"
     "${PROJECT_SOURCE_DIR}/src/AppInstallationPhase.swift"
     "${PROJECT_SOURCE_DIR}/src/AppInstallationStore.swift"
+    "${PROJECT_SOURCE_DIR}/src/AppUpdateBatch.swift"
     "${PROJECT_SOURCE_DIR}/src/AppInstallationAction.swift"
     "${PROJECT_SOURCE_DIR}/src/InstalledAppsStore.swift"
     "${PROJECT_SOURCE_DIR}/src/SimulatorApplications.swift"

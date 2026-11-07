@@ -13,7 +13,9 @@ struct CatalogAppCard: View {
   private var showsInstallation: Bool { section != .discover }
 
   var body: some View {
-    let version = app.recommendedVersion(for: runtime)
+    let version =
+      installations.activeUpdateVersion(appID: app.id, deviceID: device.id)
+      ?? app.recommendedVersion(for: runtime)
     VStack(alignment: .leading, spacing: 14) {
       VStack(alignment: .leading, spacing: 14) {
         HStack(spacing: 12) {

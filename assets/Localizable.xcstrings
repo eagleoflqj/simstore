@@ -81,6 +81,22 @@
         }
       }
     },
+    "%lld updated, %lld failed, %lld canceled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld updated, %2$lld failed, %3$lld canceled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld 个已更新，%2$lld 个失败，%3$lld 个已取消"
+          }
+        }
+      }
+    },
     "A New Nightly Is Available": {
       "localizations": {
         "en": {
@@ -397,6 +413,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "取消"
+          }
+        }
+      }
+    },
+    "Cancel All": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel All"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部取消"
           }
         }
       }
@@ -817,6 +849,22 @@
         }
       }
     },
+    "Dismiss": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
     "Done": {
       "localizations": {
         "en": {
@@ -893,6 +941,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "目录中的所有应用均已安装在此模拟器中。"
+          }
+        }
+      }
+    },
+    "Failed Updates": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed Updates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新失败的应用"
           }
         }
       }
@@ -1905,6 +1969,22 @@
         }
       }
     },
+    "Some Updates Failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some Updates Failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分应用更新失败"
+          }
+        }
+      }
+    },
     "Source Repository": {
       "localizations": {
         "en": {
@@ -1997,6 +2077,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在启动…"
+          }
+        }
+      }
+    },
+    "Stopping Updates…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopping Updates…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在停止更新…"
           }
         }
       }
@@ -2449,6 +2545,22 @@
         }
       }
     },
+    "Update All": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update All"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部更新"
+          }
+        }
+      }
+    },
     "Update SimStore to read this app catalog.": {
       "localizations": {
         "en": {
@@ -2493,6 +2605,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "更新"
+          }
+        }
+      }
+    },
+    "Updates Canceled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates Canceled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新已取消"
+          }
+        }
+      }
+    },
+    "Updates Complete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates Complete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新完成"
+          }
+        }
+      }
+    },
+    "Updating Apps": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updating Apps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在更新应用"
+          }
+        }
+      }
+    },
+    "Updating…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updating…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在更新…"
           }
         }
       }
@@ -2573,6 +2749,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "查看应用详情和版本"
+          }
+        }
+      }
+    },
+    "Waiting…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待中…"
           }
         }
       }

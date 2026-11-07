@@ -19,6 +19,7 @@ struct AppInstallationTests {
       try versionActions()
       try await replacementPipeline()
       try await replacementWhileSwitchingDevices()
+      try await AppUpdateBatchTests.run()
       print(
         "PASS: package verification, safe extraction, Simulator binaries, install/open, per-device jobs, cancellation, failures, and cleanup."
       )

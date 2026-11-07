@@ -4,6 +4,7 @@ import SwiftUI
 struct SimStoreApp: App {
   @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
   @State private var updates = SelfUpdateController()
+  @State private var uninstaller = SelfUninstallController()
 
   var body: some Scene {
     Window(Text(verbatim: "SimStore"), id: "main") {
@@ -13,10 +14,16 @@ struct SimStoreApp: App {
     .defaultSize(width: 1180, height: 780)
     .commands {
       CommandGroup(replacing: .appInfo) {
-        Button("About SimStore") { updates.show() }
+        Button("About SimStore") { updates.show() }.disabled(uninstaller.isRunning)
       }
       CommandGroup(after: .appInfo) {
         Button("Check for Updates…") { updates.show(check: true) }
+          .disabled(uninstaller.isRunning)
+        Divider()
+        Button("Uninstall SimStore…") {
+          uninstaller.confirm { updates.panel?.close() }
+        }
+        .disabled(uninstaller.isRunning || updates.store.phase != nil)
       }
     }
   }

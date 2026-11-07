@@ -249,9 +249,7 @@ struct ContentView: View {
   }
 
   private func shutdownSimulator() {
-    guard let id = simulators.selectedDeviceID, !installations.hasOperations(deviceID: id) else {
-      return
-    }
+    guard let id = simulators.selectedDeviceID else { return }
     simulators.shutdownDevice(id)
   }
 

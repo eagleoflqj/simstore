@@ -16,14 +16,11 @@ struct SimulatorPowerButtonTests {
       var shutdowns = 0
       for size: ControlSize in [.regular, .small] {
         var results: [(frame: CGRect, enabled: Bool)] = []
-        for (state, busy) in [
-          ("Shutdown", false), ("Booting", false), ("Booted", false),
-          ("Shutting Down", false), ("Booted", true),
-        ] {
+        for state in ["Shutdown", "Booting", "Booted", "Shutting Down"] {
           let device = SimulatorDevice(id: "A", name: "iPhone", runtime: "27.0", state: state)
           let host = NSHostingView(
             rootView: SimulatorPowerButton(
-              device: device, hasAppOperations: busy,
+              device: device,
               start: { starts += 1 }, shutdown: { shutdowns += 1 }
             )
             .controlSize(size)
@@ -35,21 +32,22 @@ struct SimulatorPowerButtonTests {
           button.performClick(nil)
         }
         try require(
-          results.map(\.enabled) == [true, false, true, false, false],
-          "Only idle devices may start or shut down, and app operations must block shutdown.")
-        for (idle, pending) in [(0, 1), (2, 3), (2, 4)] {
+          results.map(\.enabled) == [true, false, true, false],
+          "Power actions depend only on device state; a booted simulator can always shut down.")
+        for (idle, pending) in [(0, 1), (2, 3)] {
           let a = results[idle].frame
           let b = results[pending].frame
           try require(
             abs(a.minX - b.minX) < 0.5 && abs(a.minY - b.minY) < 0.5
               && abs(a.width - b.width) < 0.5 && abs(a.height - b.height) < 0.5,
-            "Power actions must keep stable bounds while starting, shutting down, or busy.")
+            "Power actions must keep stable bounds while starting or shutting down.")
         }
       }
       try require(
         starts == 2 && shutdowns == 2,
         "Native buttons must invoke the matching action and ignore disabled clicks.")
-      print("PASS: native simulator power actions, busy gating, and stable transition bounds.")
+      print(
+        "PASS: native simulator power actions, device state gating, and stable transition bounds.")
     } catch {
       FileHandle.standardError.write(
         Data("Simulator power button test failed: \(error.localizedDescription)\n".utf8))

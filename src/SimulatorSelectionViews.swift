@@ -49,7 +49,6 @@ struct SimulatorPicker: View {
 @MainActor
 struct SimulatorDetailView: View {
   let device: SimulatorDevice
-  let hasAppOperations: Bool
   let deviceManagerName: String?
   let start: () -> Void
   let shutdown: () -> Void
@@ -101,7 +100,7 @@ struct SimulatorDetailView: View {
       HStack(spacing: 10) {
         if device.canStart || device.canShutdown || device.isTransitioning {
           SimulatorPowerButton(
-            device: device, hasAppOperations: hasAppOperations, start: start, shutdown: shutdown)
+            device: device, start: start, shutdown: shutdown)
         }
         DeviceManagerButton(name: deviceManagerName, action: openDeviceManager)
           .buttonStyle(.bordered)

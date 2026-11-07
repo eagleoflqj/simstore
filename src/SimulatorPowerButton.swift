@@ -2,7 +2,6 @@ import SwiftUI
 
 struct SimulatorPowerButton: View {
   let device: SimulatorDevice
-  let hasAppOperations: Bool
   let start: () -> Void
   let shutdown: () -> Void
 
@@ -38,7 +37,7 @@ struct SimulatorPowerButton: View {
   private var enabled: Bool {
     switch action {
     case .start: device.canStart
-    case .shutdown: device.canShutdown && !hasAppOperations
+    case .shutdown: device.canShutdown
     case .starting, .shuttingDown: false
     }
   }
@@ -66,14 +65,6 @@ struct SimulatorPowerButton: View {
     }
     .disabled(!enabled)
     .accessibilityLabel(Text(verbatim: "\(action.title) \(device.name)"))
-    .help(helpText)
-  }
-
-  private var helpText: Text {
-    if action == .shutdown && hasAppOperations {
-      Text("Finish or cancel app operations before shutting down this simulator.")
-    } else {
-      Text(verbatim: action.title)
-    }
+    .help(Text(verbatim: action.title))
   }
 }

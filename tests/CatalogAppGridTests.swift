@@ -98,10 +98,16 @@ struct CatalogAppGridTests {
         scrollToEnd(scroll, bottom: true)
         try await eventually { isVisible(apps[999].id, in: probe) }
         if keyboard {
-          probe.focus?.wrappedValue = apps[999].id
-          try await eventually { probe.focus?.wrappedValue == apps[999].id }
+          // Centering the penultimate row must move the viewport, so this also waits
+          // for the focus-triggered scroll before the test scrolls back to the top.
+          let focusedApp = apps[997]
+          probe.focus?.wrappedValue = focusedApp.id
+          try await eventually {
+            guard let frame = probe.frames[focusedApp.id] else { return false }
+            return abs(frame.midY - scroll.contentView.bounds.height / 2) < 0.5
+          }
           try require(
-            isVisible(apps[999].id, in: probe),
+            probe.focus?.wrappedValue == focusedApp.id,
             "Scrolling to a lazy card must preserve its keyboard focus.")
         }
         try require(

@@ -8,6 +8,7 @@ enum AppUpdateBatchTests {
     try await cancellation()
     try await cancellationDuringInstall()
     try await separateDevices()
+    try await shutdownWhileDownloading()
     print(
       "PASS: Update All selection, queue reservations, serial execution, retry, cancellation, and per-device isolation."
     )
@@ -52,7 +53,7 @@ enum AppUpdateBatchTests {
     try InstallationFixtures.require(
       store.hasOperations(deviceID: device.id)
         && !store.hasOperations(deviceID: "another-device"),
-      "Queued updates must block shutdown only for their own device.")
+      "Queued updates must report activity only for their own device.")
     try InstallationFixtures.require(
       store.phase(appID: "bravo", deviceID: device.id) == .queued,
       "Reserve queued apps before returning to the UI.")
@@ -84,7 +85,7 @@ enum AppUpdateBatchTests {
     try await finished(store, device.id)
     try InstallationFixtures.require(
       !store.hasOperations(deviceID: device.id),
-      "Completed batch results must not prevent simulator shutdown.")
+      "Completed batch results must not report ongoing operations.")
     try InstallationFixtures.require(
       store.updateBatch(deviceID: device.id)?.updated == 2
         && store.updateBatch(deviceID: device.id)?.completed == 2,
@@ -163,7 +164,7 @@ enum AppUpdateBatchTests {
     store.cancelAllUpdates(deviceID: device.id)
     try InstallationFixtures.require(
       store.hasOperations(deviceID: device.id),
-      "Canceling must keep shutdown blocked until active operations finish cleaning up.")
+      "Canceling must report activity until active operations finish cleaning up.")
     try InstallationFixtures.require(
       store.phase(appID: "alpha", deviceID: device.id) == .canceling
         && store.phase(appID: "charlie", deviceID: device.id) == nil,
@@ -203,11 +204,11 @@ enum AppUpdateBatchTests {
     try await downloads.waitForCount(1)
     await downloads.finish(0)
     try await InstallationFixtures.eventually { commands.installs.count == 1 }
-    store.cancelAllUpdates(deviceID: device.id)
+    store.cancelOperations(deviceID: device.id)
     try InstallationFixtures.require(
       store.phase(appID: "alpha", deviceID: device.id) == .installing
         && store.updateBatch(deviceID: device.id)?.isStopping == true,
-      "A running simctl install must finish before the batch stops.")
+      "Stopping device operations must leave the in-flight install alone and stop its queue.")
     commands.finish.signal()
     try await finished(store, device.id)
     try InstallationFixtures.require(
@@ -215,7 +216,7 @@ enum AppUpdateBatchTests {
         && store.updateBatch(deviceID: device.id)?.canceled == 1,
       "Keep a completed installation and cancel only the pending update.")
     try InstallationFixtures.require(
-      await downloads.count == 1, "Do not download the next app after Cancel All.")
+      await downloads.count == 1, "Do not download the next app after stopping device operations.")
   }
 
   private static func separateDevices() async throws {
@@ -259,10 +260,87 @@ enum AppUpdateBatchTests {
     try fixture.requireClean()
   }
 
+  private static func shutdownWhileDownloading() async throws {
+    let fixture = try BatchFixture(ids: ["alpha", "bravo", "manual"])
+    defer { fixture.remove() }
+    let downloads = BatchDownloads(data: fixture.data)
+    let commands = BatchCommands()
+    let inventory = fixture.inventory()
+    let power = BatchSimulator()
+    let simulators = SimulatorStore(
+      discover: {
+        SimulatorDiscovery(
+          developerDirectory: URL(fileURLWithPath: "/Xcode.app/Contents/Developer"),
+          devices: [await power.device])
+      }, shutdown: { try await power.shutdown($0) }, boot: { _ in })
+    await simulators.refresh()
+    let device = simulators.selectedDevice!
+    await inventory.refresh(for: device)
+    let store = fixture.store(downloads: downloads, commands: commands, inventory: inventory)
+    let catalog = AppCatalog(schemaVersion: 1, apps: Array(fixture.apps.prefix(2)))
+    store.updateAll(in: catalog, installedApps: inventory, on: device)
+    try await downloads.waitForCount(1)
+    let manual = fixture.apps[2]
+    store.install(app: manual, version: manual.latestVersion, on: device)
+    try await downloads.waitForCount(2)
+    let other = SimulatorDevice(
+      id: "device-B", name: "iPhone B", runtime: device.runtime, state: "Booted")
+    store.install(app: manual, version: manual.latestVersion, on: other)
+    try await downloads.waitForCount(3)
+
+    guard let shutdown = simulators.shutdownDevice(device.id) else {
+      throw InstallationFixtures.failure("Accept shutdown during app downloads.")
+    }
+    store.cancelOperations(deviceID: device.id)
+    try InstallationFixtures.require(
+      store.phase(appID: "alpha", deviceID: device.id) == .canceling
+        && store.phase(appID: "bravo", deviceID: device.id) == nil
+        && store.phase(appID: "manual", deviceID: device.id) == .canceling,
+      "Cancel both batch and manual downloads and release queued apps immediately.")
+    try InstallationFixtures.require(
+      await shutdown.value && simulators.selectedDevice?.state == "Shutdown",
+      "Shutdown must complete before canceled downloads finish cleaning up.")
+    try InstallationFixtures.require(
+      store.phase(appID: "manual", deviceID: other.id) == .downloading(0),
+      "Shutting down one simulator cannot cancel another simulator's downloads.")
+    await downloads.finish(0)
+    await downloads.finish(1)
+    try await finished(store, device.id)
+    try await InstallationFixtures.eventually {
+      store.phase(appID: "manual", deviceID: device.id) == nil
+    }
+    try InstallationFixtures.require(
+      await downloads.count == 3 && commands.installs.isEmpty
+        && store.updateBatch(deviceID: device.id)?.canceled == 2,
+      "A confirmed shutdown cannot download the next queued app or install canceled packages.")
+
+    await downloads.finish(2)
+    try await InstallationFixtures.eventually {
+      store.phase(appID: "manual", deviceID: other.id) == nil
+    }
+    try InstallationFixtures.require(
+      commands.installs.count == 1 && commands.installs.first?.deviceID == other.id,
+      "The other simulator's installation must finish normally.")
+    try fixture.requireClean()
+  }
+
   private static func finished(_ store: AppInstallationStore, _ deviceID: String) async throws {
     try await InstallationFixtures.eventually {
       store.updateBatch(deviceID: deviceID)?.isRunning == false
     }
+  }
+}
+
+private actor BatchSimulator {
+  private var state = "Booted"
+
+  var device: SimulatorDevice {
+    SimulatorDevice(id: "device-A", name: "iPhone", runtime: "27.0", state: state)
+  }
+
+  func shutdown(_ id: String) throws {
+    try InstallationFixtures.require(id == "device-A", "Shut down only the selected simulator.")
+    state = "Shutdown"
   }
 }
 

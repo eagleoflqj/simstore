@@ -324,10 +324,11 @@ struct AppInstallationTests {
     store.open(app: app, on: device)
     store.install(app: app, version: app.latestVersion, on: device)
     store.cancel(appID: app.id, deviceID: device.id)
+    store.cancelOperations(deviceID: device.id)
     try InstallationFixtures.require(
       store.phase(appID: app.id, deviceID: device.id) == .uninstalling
         && commands.calls.count == 2,
-      "Do not cancel, duplicate, install, or open during an in-flight uninstall.")
+      "Stopping device operations must not wait for, cancel, or duplicate an in-flight uninstall.")
     let other = SimulatorDevice(
       id: "device-B", name: device.name, runtime: device.runtime, state: "Booted")
     await inventory.refresh(for: other)
